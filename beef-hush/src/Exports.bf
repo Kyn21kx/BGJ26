@@ -64,12 +64,14 @@ struct RegistryAttribute : Attribute, IComptimeTypeApply
         // Bake each RegTypeInfo as a named const field
         for (int i < count)
         {
+			typeNameBuff.Clear();
+			registeredTypes[i].GetFullName(typeNameBuff);
             let name = registeredTypes[i].GetName(.. scope String());
             // Emit a fixed char array initializer matching RegTypeInfo.name layout
             code.AppendF($"public static readonly RegTypeInfo Entry{i} = ");
-            code.AppendF($".(\"{name}\", {i});\n");
+            code.AppendF($".(\"{name}\", {i}, sizeof({typeNameBuff}), alignof({typeNameBuff}));\n");
         }
-
+		
         // Emit a flat array of all infos for bulk access
 		String flatArrayBuffer = scope .();
 		String lookupBuffer = scope .();
@@ -190,7 +192,7 @@ public static class Exports {
 	}
 
 	[Export, CLink]
-	public static bool GetAvailableSystems(RegTypeInfo** outRegTypeInfoArr, uint64 capacity) {
+	public static void GetAvailableSystems(RegTypeInfo** outRegTypeInfoArr, uint64 capacity) {
 		// Array should be allocated by default
 		Debug.Assert(outRegTypeInfoArr != null && outRegTypeInfoArr != null);
 		Runtime.Assert(capacity >= SystemRegistryImpl.Count, scope $"The systemInfo array does not have enough capacity({capacity}) to store all systems ({SystemRegistryImpl.Count})");
@@ -202,19 +204,42 @@ public static class Exports {
 			(*outRegTypeInfoArr)[cntr] = systemInfo;
 			cntr++;
 		}
-
-		return false;
 	}
 
 	[Export, CLink]
 	public static uint64 GetComponentCount() {
-		return 0;
+		return CompRegistryImpl.Count;
 	}
 
 
 	[Export, CLink]
-	public static void GetAvailableComponents() {
+	public static void GetAvailableComponents(RegTypeInfo** outRegTypeInfoArr, uint64 capacity) {
+		// Array should be allocated by default
+		Debug.Assert(outRegTypeInfoArr != null && outRegTypeInfoArr != null);
+		Runtime.Assert(capacity >= CompRegistryImpl.Count, scope $"The compInfo array does not have enough capacity({capacity}) to store all components ({CompRegistryImpl.Count})");
 
+		for (int32 i = 0; i < CompRegistryImpl.Count; i++) {
+			// We add it to our systems array
+			// Add the system to the list
+			RegTypeInfo registryInfo = CompRegistryImpl.All[i];
+			(*outRegTypeInfoArr)[i] = registryInfo;
+		}
+
+	}
+
+	[Export, CLink]
+	public static uint64 GetComponentSerializationCount() {
+		return CompSerializationRegistryImpl.Count;
+	}
+
+	[Export, CLink]
+	public static void GetAvailableComponentSerializationData(CompSerializationInfo** outInfoArr, uint64 capacity) {
+		Debug.Assert(outInfoArr != null && *outInfoArr != null);
+		Runtime.Assert(capacity >= CompSerializationRegistryImpl.Count, scope $"The serialization info array does not have enough capacity({capacity}) to store all component entries ({CompSerializationRegistryImpl.Count})");
+
+		for (int32 i = 0; i < CompSerializationRegistryImpl.Count; i++) {
+			(*outInfoArr)[i] = CompSerializationRegistryImpl.All[i];
+		}
 	}
 
 

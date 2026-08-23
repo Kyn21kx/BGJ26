@@ -1,6 +1,8 @@
 namespace BeefHush;
+using System;
 
-[HushComponent]
+[HushComponent, CRepr]
 struct PlayerTag
 {
+	int32 playerIndex;
 }

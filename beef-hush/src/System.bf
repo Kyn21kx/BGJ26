@@ -11,11 +11,15 @@ public struct RegTypeInfo {
 	public const int MAX_SYS_NAME = 64;
 	public char8[MAX_SYS_NAME] name;
 	public int32 registryIndex;
+	public uint64 byteSize;
+	public uint64 align;
 
-	public this(StringView name, int32 registryIndex) {
+	public this(StringView name, int32 registryIndex, uint64 byteSize, uint64 align) {
 		this.name = "";
 		this.registryIndex = registryIndex;
 		name.CopyTo(this.name);
+		this.byteSize = byteSize;
+		this.align = align;
 	}
 
 }

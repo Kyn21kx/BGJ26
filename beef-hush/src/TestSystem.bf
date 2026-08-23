@@ -11,6 +11,7 @@ public class SmallSystem : GameSystem {
 		Console.WriteLine("Small System was initialized!");
 		QueryBuilder builder = .();
 		builder.With<WorldTransform>();
+		builder.With<PlayerTag>();
 		this.m_entityQuery = builder.Build();
 	}
 
@@ -26,16 +27,16 @@ public class SmallSystem : GameSystem {
 			// Downcast
 			Hush.Transform* xform = entityRef.GetComponent<WorldTransform>();
 			if (Hush.InputManager.IsKeyDown(Hush.EKeyCode.EKeyCode_UP)) {
-				this.m_position.z -= delta * 0.5f;
+				this.m_position.z -= delta * 2f;
 			}
 			if (Hush.InputManager.IsKeyDown(Hush.EKeyCode.EKeyCode_DOWN)) {
-				this.m_position.z += delta * 0.5f;
+				this.m_position.z += delta * 2f;
 			}
 			if (Hush.InputManager.IsKeyDown(Hush.EKeyCode.EKeyCode_LEFT)) {
-				this.m_position.x -= delta * 0.5f;
+				this.m_position.x -= delta * 2f;
 			}
 			if (Hush.InputManager.IsKeyDown(Hush.EKeyCode.EKeyCode_RIGHT)) {
-				this.m_position.x += delta * 0.5f;
+				this.m_position.x += delta * 2f;
 			}
 			xform.SetPosition(this.m_position);
 		});
