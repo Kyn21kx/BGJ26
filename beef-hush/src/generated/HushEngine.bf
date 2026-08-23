@@ -10,4 +10,10 @@ public static class HushEngine {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__HushEngine__GetScene(self);
 	}
 
+	[CRepr]
+	public enum EError : int32 {
+		EError_None = 0,
+		EError_InvalidScene = 1,
+	}
+
 }

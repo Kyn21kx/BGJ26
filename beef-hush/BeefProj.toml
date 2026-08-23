@@ -6,7 +6,11 @@ Name = "beef-hush"
 TargetType = "BeefLib"
 StartupObject = "beef_hush.Program"
 
+[[Project.DistinctOptions]]
+Filter = ""
+EmitDebugInfo = "Yes"
+RuntimeChecks = false
+
 [Configs.Debug.Win64]
 BuildKind = "DynamicLib"
-# OtherLinkFlags = "$(LinkFlags) -libpath:c:\\Users\\nefes\\Personal\\HushBindingGen\\beef-hush\\libs"
-# LibPaths = ["$(ProjectDir)/libs/HushCore.lib", "$(ProjectDir)/libs/HushInput.lib", "$(ProjectDir)/libs/HushLog.lib", "$(ProjectDir)/libs/flecs.lib", "$(ProjectDir)/libs/HushThreading.lib", "$(ProjectDir)/libs/SDL2.lib", "$(ProjectDir)/libs/spdlog.lib", "$(ProjectDir)/libs/fmt.lib", "$(ProjectDir)/libs/HushEngine.lib", "$(ProjectDir)/libs/HushAppLoader.lib", "$(ProjectDir)/libs/HushRendering.lib"]
+BeefLibType = "DynamicDebug"

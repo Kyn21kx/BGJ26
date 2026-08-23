@@ -1,0 +1,14 @@
+FileVersion = 1
+Projects = {beef-hush = {Path = "."}}
+
+[Workspace]
+StartupProject = "beef-hush"
+
+[[Workspace.DistinctOptions]]
+Filter = ""
+EmitDebugInfo = "Yes"
+RuntimeChecks = false
+
+[Configs.Debug.Win64]
+ArithmeticCheck = true
+EnableRealtimeLeakCheck = false

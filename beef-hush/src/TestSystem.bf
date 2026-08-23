@@ -10,7 +10,7 @@ public class SmallSystem : GameSystem {
 	public void Init() {
 		Console.WriteLine("Small System was initialized!");
 		QueryBuilder builder = .();
-		builder.With<Hush.Transform>();
+		builder.With<WorldTransform>();
 		this.m_entityQuery = builder.Build();
 	}
 
@@ -23,7 +23,8 @@ public class SmallSystem : GameSystem {
 	/// @param delta Time since last frame
 	public void OnUpdate(float delta) {
 		this.m_entityQuery.Each(scope (entityRef) => {
-			Hush.Transform* xform = entityRef.GetComponent<Hush.Transform>();
+			// Downcast
+			Hush.Transform* xform = entityRef.GetComponent<WorldTransform>();
 			if (Hush.InputManager.IsKeyDown(Hush.EKeyCode.EKeyCode_UP)) {
 				this.m_position.z -= delta * 0.5f;
 			}

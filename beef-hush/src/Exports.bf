@@ -4,6 +4,9 @@ using System;
 using System.Diagnostics;
 using System.Collections;
 
+[AttributeUsage(.Class)]
+public struct HushComponent : Attribute {
+}
 
 [AttributeUsage(.Class)]
 struct SystemRegistryAttribute : Attribute, IComptimeTypeApply

@@ -26,10 +26,9 @@ public struct QueryBuilder {
 	public void With<T>() mut {
 		void* scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
 		let buff = scope String(64);
-		ComponentTraits.ComponentInfo compInfo =  TypeUtils.GetComponentInfo<T>(buff);
+		ComponentTraits.ComponentInfo compInfo = TypeUtils.GetComponentInfo<T>(buff);
 		
-		uint64 term = 0;
-		term = Scene.Lookup(scene, buff.CStr(), (uint64)buff.Length);
+		uint64 term = Scene.Lookup(scene, buff.CStr(), (uint64)buff.Length);
 
 		if (term == 0) {
 			ComponentTraits.ComponentInfo compInfo = TypeUtils.GetComponentInfo<T>(buff);
