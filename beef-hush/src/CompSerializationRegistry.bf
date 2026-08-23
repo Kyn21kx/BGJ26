@@ -29,10 +29,12 @@ public struct CompPropertyInfo
 	public ECompPropertyType type;
 	public uint32 elementCount;
 	public uint32 elementSize;
+	public uint32 offset;
 
-	public this(StringView name, ECompPropertyType type, uint32 elementCount, uint32 elementSize)
+	public this(StringView name, ECompPropertyType type, uint32 elementCount, uint32 elementSize, uint32 offset)
 	{
 		this.name = "";
+		this.offset = offset;
 		name.CopyTo(this.name);
 		this.type = type;
 		this.elementCount = elementCount;
@@ -162,12 +164,12 @@ struct CompSerializationRegistryAttribute : Attribute, IComptimeTypeApply
 
 					uint32 elemCount = (elemSize > 0) ? totalSize / elemSize : 0;
 					StringView propTypeStr = isCharArray ? ".String" : ".Array";
-					propLines.AppendF($"    .(\"{fname}\", {propTypeStr}, {elemCount}, {elemSize}),\n");
+					propLines.AppendF($"    .(\"{fname}\", {propTypeStr}, {elemCount}, {elemSize}, offsetof({typeNameBuff}, {fname})),\n");
 				}
 				else
 				{
 					StringView variant = MapTypeCode(ft.TypeDeclaration.TypeCode);
-					propLines.AppendF($"    .(\"{fname}\", {variant}, 0, 0),\n");
+					propLines.AppendF($"    .(\"{fname}\", {variant}, 0, 0, offsetof({typeNameBuff}, {fname})),\n");
 				}
 				propCount++;
 			}
