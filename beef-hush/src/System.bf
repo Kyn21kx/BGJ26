@@ -7,7 +7,7 @@ using System;
 public struct RegisterSystemAttribute : Attribute {}
 
 [CRepr]
-public struct SystemInfo {
+public struct RegTypeInfo {
 	public const int MAX_SYS_NAME = 64;
 	public char8[MAX_SYS_NAME] name;
 	public int32 registryIndex;

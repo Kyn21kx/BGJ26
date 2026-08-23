@@ -4,18 +4,42 @@ using System;
 using System.Diagnostics;
 using System.Collections;
 
-[AttributeUsage(.Class)]
-public struct HushComponent : Attribute {
-}
+[AttributeUsage(.Struct, false, true)]
+public struct HushComponentAttribute : CReprAttribute {}
 
 [AttributeUsage(.Class)]
-struct SystemRegistryAttribute : Attribute, IComptimeTypeApply
+struct RegistryAttribute : Attribute, IComptimeTypeApply
 {
+	private Type m_attributeToCollect;
+
+	this(Type attribute) {
+		this.m_attributeToCollect = attribute;
+	}
+
+	[Comptime]
+	private bool TypeHasCustomAttribute(TypeDeclaration t, Type attribute)
+	{
+		if (Compiler.IsComptime)
+		{
+			int32 attrIdx = -1;
+			Type attrType = null;
+			repeat
+			{
+				attrType = Type.[Friend]Comptime_Type_GetCustomAttributeType((int32)t.TypeId, ++attrIdx);
+				if (attrType == attribute)
+					return true;
+			}
+			while (attrType != null);
+			return false;
+		}
+		return false;
+	}
+
     [Comptime]
     public void ApplyToType(Type type)
     {
-        var systems = scope List<Type>();
-		String typeNameBuff = scope String(SystemInfo.MAX_SYS_NAME * 2);
+        var registeredTypes = scope List<Type>();
+		String typeNameBuff = scope String(RegTypeInfo.MAX_SYS_NAME * 2);
         for (let t in Type.TypeDeclarations)
         {
 			int32 tId = (int32)t.TypeId;
@@ -23,39 +47,39 @@ struct SystemRegistryAttribute : Attribute, IComptimeTypeApply
 			// TypeCode and custom-attribute data live in the declaration struct,
 			// written at parse time — safe to read during BfSystem_FixTypes before
 			// the resolved TypeInstance is fully populated.
-			if (t.TypeCode != .Object) continue;
-			if (!t.HasCustomAttribute<RegisterSystemAttribute>()) continue;
+			//if (t.TypeCode != .Object) continue;
+			if (!TypeHasCustomAttribute(t, this.m_attributeToCollect)) continue;
 
 			let resolved = t.ResolvedType;
 			if (resolved == null) continue;
-            systems.Add(resolved);
+            registeredTypes.Add(resolved);
         }
 
-        let count = systems.Count;
+        let count = registeredTypes.Count;
         var code = scope String();
 
         // Bake count as a compile-time constant
         code.AppendF($"public const int Count = {count};\n");
 
-        // Bake each SystemInfo as a named const field
+        // Bake each RegTypeInfo as a named const field
         for (int i < count)
         {
-            let name = systems[i].GetName(.. scope String());
-            // Emit a fixed char array initializer matching SystemInfo.name layout
-            code.AppendF($"public static readonly SystemInfo System{i} = ");
+            let name = registeredTypes[i].GetName(.. scope String());
+            // Emit a fixed char array initializer matching RegTypeInfo.name layout
+            code.AppendF($"public static readonly RegTypeInfo Entry{i} = ");
             code.AppendF($".(\"{name}\", {i});\n");
         }
 
         // Emit a flat array of all infos for bulk access
 		String flatArrayBuffer = scope .();
 		String lookupBuffer = scope .();
-		flatArrayBuffer.Append($"public static readonly SystemInfo[Count] All = .(\n");
+		flatArrayBuffer.Append($"public static readonly RegTypeInfo[Count] All = .(\n");
         lookupBuffer.Append($"public static readonly Type[Count] TypeLookup = .(\n");
         for (int i < count)
         {
 			typeNameBuff.Clear();
-			systems[i].GetFullName(typeNameBuff);
-			flatArrayBuffer.AppendF($"    System{i},\n");
+			registeredTypes[i].GetFullName(typeNameBuff);
+			flatArrayBuffer.AppendF($"    Entry{i},\n");
             lookupBuffer.AppendF($"    typeof({typeNameBuff}),\n");
         }
 		flatArrayBuffer.Append(");\n");
@@ -68,8 +92,13 @@ struct SystemRegistryAttribute : Attribute, IComptimeTypeApply
 		code.Append("public static void __ForceInclude()\n{\n");
 		for (int i < count)
 		{
-		    let fullName = systems[i].GetFullName(.. scope String());
-		    code.AppendF($"    if (true) {{ {fullName} _ = new .(); delete _; }}\n");
+		    let fullName = registeredTypes[i].GetFullName(.. scope String());
+			if (registeredTypes[i].IsStruct) {
+		    	code.AppendF($"    if (true) {{ {fullName}* _ = new .(); delete _; }}\n");
+			}
+			else {
+		    	code.AppendF($"    if (true) {{ {fullName} _ = new .(); delete _; }}\n");
+			}
 		}
 		code.Append("}\n");
 
@@ -77,8 +106,11 @@ struct SystemRegistryAttribute : Attribute, IComptimeTypeApply
     }
 }
 
-[SystemRegistry]
+[Registry(typeof(RegisterSystemAttribute))]
 public static class SystemRegistryImpl {}
+
+[Registry(typeof(HushComponentAttribute))]
+public static class CompRegistryImpl {}
 
 public class EngineDependencies {
 
@@ -125,7 +157,7 @@ public static class Exports {
 	}
 
 	[Export, CLink]
-	public static uint8* InstantiateSystem(SystemInfo* systemInfo) {
+	public static uint8* InstantiateSystem(RegTypeInfo* systemInfo) {
 		Debug.Assert(systemInfo != null, "Cannot instantiate a system with null info");
 		StringView sysName = .(&systemInfo.name[0]);
 
@@ -133,14 +165,14 @@ public static class Exports {
 		// Debug.Assert(assumedSystemIdx >= SystemRegistryImpl.Count, scope $"System index {systemInfo.registryIndex} is out of bounds for system count {SystemRegistryImpl.Count}");
 
 
-		Type assumedSystemInfoType = SystemRegistryImpl.TypeLookup[assumedSystemIdx];
+		Type assumedRegTypeInfoType = SystemRegistryImpl.TypeLookup[assumedSystemIdx];
 		// let typeRes = Type.GetTypeByName(sysName);
 
 		// if (typeRes case .Err(let err)) {
 		// 	Debug.FatalError(scope $"Could not find a system with the name {sysName}");
 		// }
 
-		var instanceRes = assumedSystemInfoType.CreateObject();
+		var instanceRes = assumedRegTypeInfoType.CreateObject();
 
 		if (instanceRes case .Err(let instanceErr)) {
 			Debug.FatalError(scope $"Unable to create system {sysName}, error: {instanceErr}");
@@ -158,21 +190,33 @@ public static class Exports {
 	}
 
 	[Export, CLink]
-	public static bool GetAvailableSystems(SystemInfo** outSystemInfoArr, uint64 capacity) {
+	public static bool GetAvailableSystems(RegTypeInfo** outRegTypeInfoArr, uint64 capacity) {
 		// Array should be allocated by default
-		Debug.Assert(outSystemInfoArr != null && outSystemInfoArr != null);
+		Debug.Assert(outRegTypeInfoArr != null && outRegTypeInfoArr != null);
 		Runtime.Assert(capacity >= SystemRegistryImpl.Count, scope $"The systemInfo array does not have enough capacity({capacity}) to store all systems ({SystemRegistryImpl.Count})");
 
 		uint64 cntr = 0;
 		for (let systemInfo in SystemRegistryImpl.All) {
 			// We add it to our systems array
 			// Add the system to the list
-			(*outSystemInfoArr)[cntr] = systemInfo;
+			(*outRegTypeInfoArr)[cntr] = systemInfo;
 			cntr++;
 		}
 
 		return false;
 	}
+
+	[Export, CLink]
+	public static uint64 GetComponentCount() {
+		return 0;
+	}
+
+
+	[Export, CLink]
+	public static void GetAvailableComponents() {
+
+	}
+
 
 	[Export, CLink]
 	public static void CallSystemInit(void* systemHandle) {
