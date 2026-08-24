@@ -25,10 +25,10 @@ public class SmallSystem : GameSystem {
 	/// OnRender() is called when the system should render.
 	/// @param delta Time since last frame
 	public void OnUpdate(float delta) {
-		this.m_entityQuery.Each(scope (entityRef) => {
+		this.m_entityQuery.Each<WorldTransform, PlayerTag, Controller>(scope (entityRef, rawXform, tag, controller) => {
 			// Downcast
-			Hush.Transform* xform = entityRef.GetComponent<WorldTransform>();
-			let controller = entityRef.GetComponent<Controller>();
+			Hush.Transform* xform = (Hush.Transform*)rawXform;
+			// let controller = entityRef.GetComponent<Controller>();
 			if (Hush.InputManager.IsKeyDown((EKeyCode)controller.up)) {
 				this.m_position.z -= delta * 2f;
 			}

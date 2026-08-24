@@ -22,7 +22,7 @@ public class PhysicsSystem : GameSystem{
 		Console.WriteLine("Physics system was shutdown!");
 	}
 	public void OnUpdate(float delta){
-		this.entityQuery.Each(scope (entityRef) => {
+		this.entityQuery.Each<RigidBody, WorldTransform>(scope (entityRef) => {
 			RigidBody* rig = entityRef.GetComponent<RigidBody>();
 			Hush.Transform* xform = entityRef.GetComponent<WorldTransform>();
 
