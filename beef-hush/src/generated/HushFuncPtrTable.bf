@@ -52,4 +52,5 @@ public struct HushFuncPtrTable {
 	public function bool(EMouseButton) HushFuncPtr_Hush__InputManager__GetMouseButtonPressed;
 	public function bool(char8*) HushFuncPtr_Hush__InputManager__FetchCharThisFrame;
 	public function void(ECursorLockMode) HushFuncPtr_Hush__InputManager__SetCursorLock;
+	public function uint64(void* self,char8* ,uint64 virtualPathSize) HushFuncPtr_Hush__RenderingSystemAPI__InstantiateMeshEntities;
 }
