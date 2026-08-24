@@ -22,9 +22,8 @@ public class PhysicsSystem : GameSystem{
 		Console.WriteLine("Physics system was shutdown!");
 	}
 	public void OnUpdate(float delta){
-		this.entityQuery.Each<RigidBody, WorldTransform>(scope (entityRef) => {
-			RigidBody* rig = entityRef.GetComponent<RigidBody>();
-			Hush.Transform* xform = entityRef.GetComponent<WorldTransform>();
+		this.entityQuery.Each<RigidBody, WorldTransform>(scope (entityRef, rig, xformRaw) => {
+			Transform* xform = xformRaw;
 
 			if (!rig.dynamic) {
 				return;
@@ -33,7 +32,7 @@ public class PhysicsSystem : GameSystem{
 			rig.vel += rig.acc * delta;
 
 
-			Hush.Vector3 p = xform.GetPositionValue();
+			Vector3 p = xform.GetPositionValue();
 			p.x += rig.vel.x * delta;
 			p.y += rig.vel.y * delta;
 			p.z += rig.vel.z * delta;

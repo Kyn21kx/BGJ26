@@ -10,4 +10,5 @@ struct Controller // All these come from Hush.EKeyCode, which uses i32 as underl
 	public int32 down;
 	public int32 left;
 	public int32 right;
+	public int32 fire; // This is a mouse button
 }

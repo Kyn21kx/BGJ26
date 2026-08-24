@@ -5,7 +5,7 @@ using System;
 [HushComponent, CRepr]
 struct Spell
 {
-	float fireRate;
-	float manaCost;
-	float lastFireTime;
+	public float fireRate;
+	public float manaCost;
+	public float lastFireTime;
 }
