@@ -3,10 +3,8 @@ using System;
 
 
 [CRepr]
-public struct Vector3 {
-	public float x;
-	public float y;
-	public float z;
+extension Vector3 {
+
 	public this(float x, float y, float z){
 		 this.x = x;
 		 this.y = y;
