@@ -1,6 +1,7 @@
 namespace BeefHush;
 
 using System;
+using Hush;
 
 [RegisterSystem]
 public class SmallSystem : GameSystem {
@@ -12,6 +13,7 @@ public class SmallSystem : GameSystem {
 		QueryBuilder builder = .();
 		builder.With<WorldTransform>();
 		builder.With<PlayerTag>();
+		builder.With<Controller>();
 		this.m_entityQuery = builder.Build();
 	}
 
@@ -26,16 +28,17 @@ public class SmallSystem : GameSystem {
 		this.m_entityQuery.Each(scope (entityRef) => {
 			// Downcast
 			Hush.Transform* xform = entityRef.GetComponent<WorldTransform>();
-			if (Hush.InputManager.IsKeyDown(Hush.EKeyCode.EKeyCode_UP)) {
+			let controller = entityRef.GetComponent<Controller>();
+			if (Hush.InputManager.IsKeyDown((EKeyCode)controller.up)) {
 				this.m_position.z -= delta * 2f;
 			}
-			if (Hush.InputManager.IsKeyDown(Hush.EKeyCode.EKeyCode_DOWN)) {
+			if (Hush.InputManager.IsKeyDown((EKeyCode)controller.down)) {
 				this.m_position.z += delta * 2f;
 			}
-			if (Hush.InputManager.IsKeyDown(Hush.EKeyCode.EKeyCode_LEFT)) {
+			if (Hush.InputManager.IsKeyDown((EKeyCode)controller.left)) {
 				this.m_position.x -= delta * 2f;
 			}
-			if (Hush.InputManager.IsKeyDown(Hush.EKeyCode.EKeyCode_RIGHT)) {
+			if (Hush.InputManager.IsKeyDown((EKeyCode)controller.right)) {
 				this.m_position.x += delta * 2f;
 			}
 			xform.SetPosition(this.m_position);

@@ -6,8 +6,8 @@ using System;
 [HushComponent, CRepr]
 struct Controller // All these come from Hush.EKeyCode, which uses i32 as underlying type
 {
-	int32 up;
-	int32 down;
-	int32 left;
-	int32 right;
+	public int32 up;
+	public int32 down;
+	public int32 left;
+	public int32 right;
 }
