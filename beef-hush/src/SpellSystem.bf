@@ -34,6 +34,7 @@ class SpellSystem : GameSystem
 		this.m_totalTime += delta;
 		this.m_fireSpellsQuery.Each<Spell, Controller, ManaStat>(scope (entityRef, spell, controller, manaStat) => {
 			float diff = this.m_totalTime - spell.lastFireTime;
+			// TODO: Make the component decide if this is a mouse button press or something else
 			bool mouseWasPressed = InputManager.GetMouseButtonPressed((EMouseButton)controller.fire);
 			if (mouseWasPressed && diff >= spell.fireRate && manaStat.currentMana >= spell.manaCost) {
 				// Add a bullet mesh
