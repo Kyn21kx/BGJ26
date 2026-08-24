@@ -3,9 +3,7 @@ using System;
 
 
 [CRepr]
-public struct Vector2 {
-	public float x;
-	public float y;
+extension Vector2 {
 
 	public this(float x, float y){
 		 this.x = x;
