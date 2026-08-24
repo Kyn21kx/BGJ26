@@ -16,6 +16,7 @@ class SpellSystem : GameSystem
 		builder.With<Spell>();
 		builder.With<Controller>();
 		builder.With<ManaStat>();
+		this.m_fireSpellsQuery = builder.Build();
 		// Make sure we properly initialize this
 		this.m_fireSpellsQuery.Each<Spell>(scope (entityRef, spell) => {
 			spell.lastFireTime = 0f;
