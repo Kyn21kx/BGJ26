@@ -30,6 +30,7 @@ public class PhysicsSystem : GameSystem{
 
 			rig.aabb.pos += rig.vel * delta;
 			xformRaw.SetPosition(rig.aabb.pos);
+			// TODO: Do angular rotation
 		});
 	}
 

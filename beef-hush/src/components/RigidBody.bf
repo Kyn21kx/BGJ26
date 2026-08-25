@@ -8,6 +8,7 @@ public struct RigidBody
     public AABB aabb;
     public Vector3 vel;
     public Vector3 acc;
+	public Vector3 angularVel;
 
     public bool dynamic;
 
@@ -16,6 +17,7 @@ public struct RigidBody
 		this.vel = Constants.Vector3_ZERO;
 		this.acc = Constants.Vector3_ZERO;
 		this.dynamic = true;
+		this.angularVel = Constants.Vector3_ZERO;
 	}
 
 	public void Init(AABB bb,
@@ -32,6 +34,10 @@ public struct RigidBody
     {
         this.vel = velocity;
     }
+
+	public void SetAngularVelocity(Vector3 angularVelocity) mut {
+		this.angularVel = angularVelocity;
+	}
 
     public  void SetAcceleration(Vector3 acceleration)mut
     {

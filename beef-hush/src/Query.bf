@@ -162,7 +162,7 @@ public struct Query {
 					&((T1*)iterator.GetComponentAt(0, (uint64)sizeof(T1)))[i],
 					&((T2*)iterator.GetComponentAt(1, (uint64)sizeof(T2)))[i],
 					&((T3*)iterator.GetComponentAt(2, (uint64)sizeof(T3)))[i],
-					&((T4*)iterator.GetComponentAt(2, (uint64)sizeof(T4)))[i]
+					&((T4*)iterator.GetComponentAt(3, (uint64)sizeof(T4)))[i]
 				);
 			}
 		}

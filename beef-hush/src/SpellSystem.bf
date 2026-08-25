@@ -19,6 +19,7 @@ class SpellSystem : GameSystem
 		builder.With<Spell>();
 		builder.With<Controller>();
 		builder.With<ManaStat>();
+		builder.With<LocalTransform>(); // Assume this entity is unparented
 		this.m_fireSpellsQuery = builder.Build();
 		this.m_scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
 		const StringView renderSystemName = "RenderingSystem";
@@ -49,7 +50,8 @@ class SpellSystem : GameSystem
 	{
 		this.m_totalTime += delta;
 		this.ManaSubsystem(delta);
-		this.m_fireSpellsQuery.Each<Spell, Controller, ManaStat>(scope (entityRef, spell, controller, manaStat) => {
+		const Vector3 bulletScale = Constants.Vector3_ONE * 30.0f;
+		this.m_fireSpellsQuery.Each<Spell, Controller, ManaStat, LocalTransform>(scope (entityRef, spell, controller, manaStat, xform) => {
 			float diff = this.m_totalTime - spell.lastFireTime;
 			// TODO: Make the component decide if this is a mouse button press or something else
 			bool mouseWasPressed = InputManager.GetMouseButtonPressed((EMouseButton)controller.fire);
@@ -66,7 +68,10 @@ class SpellSystem : GameSystem
 
 				let bulletRootEntity = BeefHush.Entity(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
 				RigidBody* rig = bulletRootEntity.AddComponent<RigidBody>();
+				var bulletXform = bulletRootEntity.GetComponent<LocalTransform>();
+				bulletXform.SetScale(bulletScale);
 				*rig = .(); // Set default vals
+				rig.aabb.pos = xform.GetPositionValue(); // + The direction offset
 				rig.SetVelocity(.(1, 0, 0) * spell.projectileSpeed);
 				Lifetime* bulletLifetime = bulletRootEntity.AddComponent<Lifetime>();
 				// t = d / V
