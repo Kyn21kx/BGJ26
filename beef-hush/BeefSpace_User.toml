@@ -1,13 +1,13 @@
 FileVersion = 1
 LastConfig = "Debug"
 LastPlatform = "Win64"
-RecentFilesList = ["src\\components\\Spell.bf", "src\\components\\PlayerTag.bf", "src\\CompSerializationRegistry.bf", "src\\Exports.bf", "src\\components\\Controller.bf", "src\\components\\Pickup.bf", "src\\generated\\EKeyCode.bf", "src\\System.bf", "src\\TestSystem.bf", "c:\\Program Files\\BeefLang\\BeefLibs\\corlib\\src\\Reflection\\TypeInstance.bf"]
+RecentFilesList = ["src\\SpellSystem.bf", "src\\components\\RigidBody.bf", "src\\PhysicsSystem.bf", "src\\ParticleSystem.bf", "src\\components\\Particle.bf", "src\\generated\\Entity.bf", "src\\Entity.bf", "src\\components\\Spell.bf", "src\\Exports.bf", "src\\components\\PlayerTag.bf", "src\\CompSerializationRegistry.bf", "src\\components\\Controller.bf", "src\\components\\Pickup.bf", "src\\generated\\EKeyCode.bf", "src\\System.bf", "src\\TestSystem.bf", "c:\\Program Files\\BeefLang\\BeefLibs\\corlib\\src\\Reflection\\TypeInstance.bf"]
 
 [MainWindow]
 X = 772
 Y = 0
-Width = 625
-Height = 588
+Width = 500
+Height = 470
 ShowKind = "ShowMaximized"
 
 [MainDockingFrame]
@@ -22,7 +22,7 @@ Type = "DockingFrame"
 SplitType = 1
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets]]
-RequestedWidth = 346.0
+RequestedWidth = 348.0
 RequestedHeight = 200.0
 Type = "TabbedView"
 
@@ -43,6 +43,65 @@ DefaultDocumentsTabbedView = true
 Type = "TabbedView"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "ParticleSystem.bf"
+TabWidth = 128.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\ParticleSystem.bf"
+CursorPos = 303
+ProjectName = "beef-hush"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "Particle.bf"
+TabWidth = 87.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\components\\Particle.bf"
+CursorPos = 257
+ProjectName = "beef-hush"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "Entity.bf"
+TabWidth = 76.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\generated\\Entity.bf"
+CursorPos = 1775
+VertPos = 690.0
+ProjectName = "beef-hush"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "Entity.bf"
+TabWidth = 76.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\Entity.bf"
+CursorPos = 2029
+VertPos = 1104.0
+ProjectName = "beef-hush"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
+Active = true
+TabLabel = "SpellSystem.bf"
+TabWidth = 114.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\SpellSystem.bf"
+CursorPos = 2034
+VertPos = 690.0
+ProjectName = "beef-hush"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "PhysicsSystem.bf"
+TabWidth = 127.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\PhysicsSystem.bf"
+CursorPos = 1191
+VertPos = 673.0
+ProjectName = "beef-hush"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "Pickup.bf"
 TabWidth = 82.0
 TabIsPinned = false
@@ -57,7 +116,7 @@ TabWidth = 73.0
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\components\\Spell.bf"
-CursorPos = 127
+CursorPos = 180
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
@@ -97,7 +156,6 @@ CursorPos = 96
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
-Active = true
 TabLabel = "Exports.bf"
 TabWidth = 89.0
 TabIsPinned = false
@@ -123,6 +181,7 @@ TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\TestSystem.bf"
 CursorPos = 325
+VertPos = 966.0
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets]]

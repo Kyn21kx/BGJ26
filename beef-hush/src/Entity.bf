@@ -53,15 +53,27 @@ public struct Entity { //: BindingCompletenessCheck<Hush.Entity, Entity> {
 		return term;
 	}
 
-	public void AddComponent<T>() {
+	public T* AddComponent<T>() {
 		uint64 compId = this.RegisterCompIfNeeded<T>();
-		this.m_innerEntity.AddComponentRaw(compId);
+		return (T*)this.m_innerEntity.AddComponentRaw(compId);
 	}
 
 	public T* GetComponent<T>() {
 		uint64 compId = this.RegisterCompIfNeeded<T>();
 		void* compMut = this.m_innerEntity.GetComponentRaw(compId);
 		return (T*)compMut;
+	}
+
+	public T* GetComponentConst<T>() {
+		uint64 compId = this.RegisterCompIfNeeded<T>();
+		void* compConst = this.m_innerEntity.GetComponentConstRaw(compId);
+		return (T*)compConst;
+	}
+
+	public T* GetComponentConstAsName<T>(StringView name) {
+		uint64 compId = this.RegisterCompIfNeeded<T>(name);
+		void* compConst = this.m_innerEntity.GetComponentConstRaw(compId);
+		return (T*)compConst;
 	}
 
 	public T* GetComponentAsName<T>(StringView name) {

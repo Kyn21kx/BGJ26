@@ -8,6 +8,8 @@ class SpellSystem : GameSystem
 {
 	private Query m_fireSpellsQuery;
 	private float m_totalTime;
+	private void* m_scene;
+	private BeefHush.Entity m_renderingSystem;
 
 	public void Init()
 	{
@@ -17,6 +19,9 @@ class SpellSystem : GameSystem
 		builder.With<Controller>();
 		builder.With<ManaStat>();
 		this.m_fireSpellsQuery = builder.Build();
+		this.m_scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
+		const StringView renderSystemName = "RenderingSystem";
+		this.m_renderingSystem = BeefHush.Entity(Scene.CreateEntityWithKey(this.m_scene, (char8*)renderSystemName.ToRawData().Ptr, (uint64)renderSystemName.Length));
 		// Make sure we properly initialize this
 		this.m_fireSpellsQuery.Each<Spell>(scope (entityRef, spell) => {
 			spell.lastFireTime = 0f;
@@ -41,6 +46,16 @@ class SpellSystem : GameSystem
 				Console.WriteLine("Fired spell!");
 				manaStat.currentMana -= spell.manaCost;
 				spell.lastFireTime = this.m_totalTime;
+
+				// Slow path at instancing
+				let handle = this.m_renderingSystem.GetComponent<RenderingSystemAPI>();
+				const StringView path = "res://Box.glb";
+				uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
+
+				let bulletRootEntity = BeefHush.Entity(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
+				RigidBody* rig =bulletRootEntity.AddComponent<RigidBody>();
+				*rig = .(); // Set default vals
+				rig.SetVelocity(.(1, 0, 0) * spell.projectileSpeed);
 			}
 		});
 

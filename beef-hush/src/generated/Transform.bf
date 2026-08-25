@@ -12,6 +12,10 @@ public struct Transform {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetPositionValue(&this);
 	}
 
+	public Vector3* GetPosition() {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetPosition(&this);
+	}
+
 	public void SetPosition(Vector3 position) {
 		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__SetPosition(&this, position);
 	}

@@ -42,6 +42,10 @@ public struct Entity {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__HasComponentRaw(&this, componentId);
 	}
 
+	public void* GetComponentConstRaw(uint64 componentId) {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__GetComponentConstRaw(&this, componentId);
+	}
+
 	public void* GetComponentRaw(uint64 componentId) {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__GetComponentRaw(&this, componentId);
 	}

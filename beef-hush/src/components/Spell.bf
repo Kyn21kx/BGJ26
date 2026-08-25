@@ -8,4 +8,5 @@ struct Spell
 	public float fireRate;
 	public float manaCost;
 	public float lastFireTime;
+	public float projectileSpeed;
 }

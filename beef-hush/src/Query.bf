@@ -103,7 +103,7 @@ public struct Query {
 			for (uint64 i = 0; i < size; i++) {
 				uint64 entityId = iterator.GetEntityAt(i);
 				Hush.Entity currEntity = Scene.EntityFromIdUnchecked(scene, entityId);
-				callable(BeefHush.Entity(currEntity), (T1*)iterator.GetComponentAt(0, (uint64)sizeof(T1)));
+				callable(BeefHush.Entity(currEntity), &((T1*)iterator.GetComponentAt(0, (uint64)sizeof(T1)))[i]);
 			}
 		}
 	}
@@ -119,12 +119,13 @@ public struct Query {
 				Hush.Entity currEntity = Scene.EntityFromIdUnchecked(scene, entityId);
 				callable(
 					BeefHush.Entity(currEntity),
-					(T1*)iterator.GetComponentAt(0, (uint64)sizeof(T1)),
-					(T2*)iterator.GetComponentAt(1, (uint64)sizeof(T2))
+					&((T1*)iterator.GetComponentAt(0, (uint64)sizeof(T1)))[i],
+					&((T2*)iterator.GetComponentAt(1, (uint64)sizeof(T2)))[i]
 				);
 			}
 		}
 	}
+
 
 	public void Each<T1, T2, T3>(OnEachCallback<T1, T2, T3> callable) {
 		let iterator = this.m_innerQuery.GetIterator();
@@ -137,13 +138,15 @@ public struct Query {
 				Hush.Entity currEntity = Scene.EntityFromIdUnchecked(scene, entityId);
 				callable(
 					BeefHush.Entity(currEntity),
-					(T1*)iterator.GetComponentAt(0, (uint64)sizeof(T1)),
-					(T2*)iterator.GetComponentAt(1, (uint64)sizeof(T2)),
-					(T3*)iterator.GetComponentAt(2, (uint64)sizeof(T3))
+					&((T1*)iterator.GetComponentAt(0, (uint64)sizeof(T1)))[i],
+					&((T2*)iterator.GetComponentAt(1, (uint64)sizeof(T2)))[i],
+					&((T3*)iterator.GetComponentAt(2, (uint64)sizeof(T3)))[i]
 				);
 			}
 		}
 	}
+	
+
 
 	public void Each<T1, T2, T3, T4>(OnEachCallback<T1, T2, T3, T4> callable) {
 		let iterator = this.m_innerQuery.GetIterator();
@@ -156,14 +159,15 @@ public struct Query {
 				Hush.Entity currEntity = Scene.EntityFromIdUnchecked(scene, entityId);
 				callable(
 					BeefHush.Entity(currEntity),
-					(T1*)iterator.GetComponentAt(0, (uint64)sizeof(T1)),
-					(T2*)iterator.GetComponentAt(1, (uint64)sizeof(T2)),
-					(T3*)iterator.GetComponentAt(1, (uint64)sizeof(T3)),
-					(T4*)iterator.GetComponentAt(1, (uint64)sizeof(T4))
+					&((T1*)iterator.GetComponentAt(0, (uint64)sizeof(T1)))[i],
+					&((T2*)iterator.GetComponentAt(1, (uint64)sizeof(T2)))[i],
+					&((T3*)iterator.GetComponentAt(2, (uint64)sizeof(T3)))[i],
+					&((T4*)iterator.GetComponentAt(2, (uint64)sizeof(T4)))[i]
 				);
 			}
 		}
 	}
+	
 
 }
 

@@ -23,24 +23,15 @@ public class PhysicsSystem : GameSystem{
 	}
 	public void OnUpdate(float delta){
 		this.entityQuery.Each<RigidBody, WorldTransform>(scope (entityRef, rig, xformRaw) => {
-			Transform* xform = xformRaw;
-
 			if (!rig.dynamic) {
 				return;
 			}
+			Console.WriteLine(scope $"Matched on entity: {entityRef.Id}");
 			//NOTE(cris): Version hecha por claudio
 			rig.vel += rig.acc * delta;
 
-
-			Vector3 p = xform.GetPositionValue();
-			p.x += rig.vel.x * delta;
-			p.y += rig.vel.y * delta;
-			p.z += rig.vel.z * delta;
-
-
-			xform.SetPosition(p);
-			rig.aabb.pos = .(p.x, p.y, p.z);
-
+			rig.aabb.pos += rig.vel * delta;
+			xformRaw.SetPosition(rig.aabb.pos);
 		});
 	}
 
