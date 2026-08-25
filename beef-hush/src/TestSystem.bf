@@ -6,7 +6,8 @@ using Hush;
 [RegisterSystem]
 public class SmallSystem : GameSystem {
 	private Query m_entityQuery;
-	private Hush.Vector3 m_position = .();
+	// Fixing player scale at runtime, lol
+	const Hush.Vector3 PLAYER_SCALE = Constants.Vector3_ONE * 0.001f;
 
 	public void Init() {
 		Console.WriteLine("Small System was initialized!");
@@ -28,6 +29,7 @@ public class SmallSystem : GameSystem {
 		this.m_entityQuery.Each<LocalTransform, PlayerTag, Controller>(scope (entityRef, rawXform, tag, controller) => {
 			// Downcast
 			Hush.Transform* xform = (Hush.Transform*)rawXform;
+			xform.SetScale(PLAYER_SCALE);
 			Vector3 pos = xform.GetPositionValue();
 			// let controller = entityRef.GetComponent<Controller>();
 			if (Hush.InputManager.IsKeyDown((EKeyCode)controller.up)) {
