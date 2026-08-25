@@ -31,7 +31,7 @@ public class MovementSsytem : GameSystem
 			 tag, controller, rigidBody) => {
 
 
-				 Vector3 movement = .();
+				Vector3 movement = .();
 
 				if(Hush.InputManager.IsKeyDown((EKeyCode)controller.up)){
 					movement.z = 1;
@@ -50,7 +50,7 @@ public class MovementSsytem : GameSystem
 				}
 				 
 				if(movement != Constants.Vector3_ZERO){
-					movement = movement.normalized();
+					// movement = movement.normalized();
 
 				}
 

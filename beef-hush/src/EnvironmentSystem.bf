@@ -9,7 +9,7 @@ class EnvironmentSystem : GameSystem
 	const float WIDTH = 30f;
 	const float HEIGHT = 20f;
 	const float CELL_SIZE = 0.768f;
-	const Vector3 SCALE = Constants.Vector3_ONE * 0.435f;
+	const Vector3 SCALE = Constants.Vector3_ONE * 0.415f;
 
 	public void Init()
 	{
