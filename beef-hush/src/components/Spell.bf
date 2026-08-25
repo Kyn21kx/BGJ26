@@ -9,4 +9,5 @@ struct Spell
 	public float manaCost;
 	public float lastFireTime;
 	public float projectileSpeed;
+	public float range;
 }

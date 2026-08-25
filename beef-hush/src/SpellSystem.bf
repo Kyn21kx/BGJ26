@@ -53,9 +53,12 @@ class SpellSystem : GameSystem
 				uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
 
 				let bulletRootEntity = BeefHush.Entity(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
-				RigidBody* rig =bulletRootEntity.AddComponent<RigidBody>();
+				RigidBody* rig = bulletRootEntity.AddComponent<RigidBody>();
 				*rig = .(); // Set default vals
 				rig.SetVelocity(.(1, 0, 0) * spell.projectileSpeed);
+				Lifetime* bulletLifetime = bulletRootEntity.AddComponent<Lifetime>();
+				// t = d / V
+				bulletLifetime.remaining = spell.range / spell.projectileSpeed;
 			}
 		});
 

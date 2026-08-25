@@ -53,6 +53,10 @@ public struct Entity { //: BindingCompletenessCheck<Hush.Entity, Entity> {
 		return term;
 	}
 
+	public Hush.Entity* InnerEntity() mut {
+		return &this.m_innerEntity;
+	}
+
 	public T* AddComponent<T>() {
 		uint64 compId = this.RegisterCompIfNeeded<T>();
 		return (T*)this.m_innerEntity.AddComponentRaw(compId);
