@@ -7,6 +7,7 @@ using System;
 class SpellSystem : GameSystem
 {
 	private Query m_fireSpellsQuery;
+	private Query m_manaQuery;
 	private float m_totalTime;
 	private void* m_scene;
 	private BeefHush.Entity m_renderingSystem;
@@ -27,6 +28,9 @@ class SpellSystem : GameSystem
 			spell.lastFireTime = 0f;
 		});
 
+		builder = .();
+		builder.With<ManaStat>();
+		this.m_manaQuery = builder.Build();
 	}
 
 	public void OnShutdown()
@@ -34,9 +38,17 @@ class SpellSystem : GameSystem
 
 	}
 
+	private void ManaSubsystem(float delta) {
+		this.m_manaQuery.Each<ManaStat>(scope (entityRef, manaStat) => {
+			manaStat.currentMana += manaStat.regenerationRate * delta;
+			manaStat.currentMana = Math.Clamp(manaStat.currentMana, 0, 100);
+		});
+	}
+
 	public void OnUpdate(float delta)
 	{
 		this.m_totalTime += delta;
+		this.ManaSubsystem(delta);
 		this.m_fireSpellsQuery.Each<Spell, Controller, ManaStat>(scope (entityRef, spell, controller, manaStat) => {
 			float diff = this.m_totalTime - spell.lastFireTime;
 			// TODO: Make the component decide if this is a mouse button press or something else
@@ -49,7 +61,7 @@ class SpellSystem : GameSystem
 
 				// Slow path at instancing
 				let handle = this.m_renderingSystem.GetComponent<RenderingSystemAPI>();
-				const StringView path = "res://Box.glb";
+				const StringView path = "res://decahedron.glb";
 				uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
 
 				let bulletRootEntity = BeefHush.Entity(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));

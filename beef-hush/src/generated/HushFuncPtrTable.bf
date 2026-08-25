@@ -47,6 +47,7 @@ public struct HushFuncPtrTable {
 	public function void(Transform* self,Vector3) HushFuncPtr_Hush__Transform__SetPosition;
 	public function Vector3*(Transform* self) HushFuncPtr_Hush__Transform__GetPosition;
 	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__GetPositionValue;
+	public function void(Transform* self,Vector3) HushFuncPtr_Hush__Transform__SetScale;
 	public function bool(EKeyCode) HushFuncPtr_Hush__InputManager__IsKeyDown;
 	public function bool(EKeyCode) HushFuncPtr_Hush__InputManager__IsKeyDownThisFrame;
 	public function bool(EKeyCode) HushFuncPtr_Hush__InputManager__IsKeyUp;

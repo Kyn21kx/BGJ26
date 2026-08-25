@@ -8,6 +8,10 @@ public struct Transform {
 	public char8[16] m_member2;
 	public char8[1] m_member3;
 
+	public void SetScale(Vector3 scale) {
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__SetScale(&this, scale);
+	}
+
 	public Vector3 GetPositionValue() {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetPositionValue(&this);
 	}

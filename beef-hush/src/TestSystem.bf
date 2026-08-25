@@ -11,7 +11,7 @@ public class SmallSystem : GameSystem {
 	public void Init() {
 		Console.WriteLine("Small System was initialized!");
 		QueryBuilder builder = .();
-		builder.With<WorldTransform>();
+		builder.With<LocalTransform>();
 		builder.With<PlayerTag>();
 		builder.With<Controller>();
 		this.m_entityQuery = builder.Build();
@@ -25,23 +25,24 @@ public class SmallSystem : GameSystem {
 	/// OnRender() is called when the system should render.
 	/// @param delta Time since last frame
 	public void OnUpdate(float delta) {
-		this.m_entityQuery.Each<WorldTransform, PlayerTag, Controller>(scope (entityRef, rawXform, tag, controller) => {
+		this.m_entityQuery.Each<LocalTransform, PlayerTag, Controller>(scope (entityRef, rawXform, tag, controller) => {
 			// Downcast
 			Hush.Transform* xform = (Hush.Transform*)rawXform;
+			Vector3 pos = xform.GetPositionValue();
 			// let controller = entityRef.GetComponent<Controller>();
 			if (Hush.InputManager.IsKeyDown((EKeyCode)controller.up)) {
-				this.m_position.z -= delta * 2f;
+				pos.z -= delta * 2f;
 			}
 			if (Hush.InputManager.IsKeyDown((EKeyCode)controller.down)) {
-				this.m_position.z += delta * 2f;
+				pos.z += delta * 2f;
 			}
 			if (Hush.InputManager.IsKeyDown((EKeyCode)controller.left)) {
-				this.m_position.x -= delta * 2f;
+				pos.x -= delta * 2f;
 			}
 			if (Hush.InputManager.IsKeyDown((EKeyCode)controller.right)) {
-				this.m_position.x += delta * 2f;
+				pos.x += delta * 2f;
 			}
-			xform.SetPosition(this.m_position);
+			xform.SetPosition(pos);
 		});
 	}
 

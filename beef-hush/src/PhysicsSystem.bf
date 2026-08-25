@@ -1,4 +1,3 @@
-namespace beef_hush;
 namespace BeefHush;
 
 using System;
@@ -26,7 +25,6 @@ public class PhysicsSystem : GameSystem{
 			if (!rig.dynamic) {
 				return;
 			}
-			Console.WriteLine(scope $"Matched on entity: {entityRef.Id}");
 			//NOTE(cris): Version hecha por claudio
 			rig.vel += rig.acc * delta;
 
