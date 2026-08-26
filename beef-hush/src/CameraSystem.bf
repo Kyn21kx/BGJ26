@@ -34,7 +34,7 @@ class CameraSystem : GameSystem
 
 	public void OnUpdate(float delta)
 	{
-		// 
+		// The camera should look at a focal point that is the average of all players
 	}
 
 	public void OnFixedUpdate(float delta)

@@ -11,6 +11,7 @@ class SpellSystem : GameSystem
 	private float m_totalTime;
 	private void* m_scene;
 	private BeefHush.Entity m_renderingSystem;
+	private BeefHush.Entity m_bulletMeshRef;
 
 	public void Init()
 	{
@@ -19,11 +20,9 @@ class SpellSystem : GameSystem
 		builder.With<Spell>();
 		builder.With<Controller>();
 		builder.With<ManaStat>();
-		builder.With<LocalTransform>(); // Assume this entity is unparented
+		builder.With<WorldTransform>();
 		this.m_fireSpellsQuery = builder.Build();
 		this.m_scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
-		const StringView renderSystemName = "RenderingSystem";
-		this.m_renderingSystem = BeefHush.Entity(Scene.CreateEntityWithKey(this.m_scene, (char8*)renderSystemName.ToRawData().Ptr, (uint64)renderSystemName.Length));
 		// Make sure we properly initialize this
 		this.m_fireSpellsQuery.Each<Spell>(scope (entityRef, spell) => {
 			spell.lastFireTime = 0f;
@@ -32,11 +31,26 @@ class SpellSystem : GameSystem
 		builder = .();
 		builder.With<ManaStat>();
 		this.m_manaQuery = builder.Build();
+		this.InitializeMeshes();
+	}
+
+	public void InitializeMeshes() {
+		const StringView renderSystemName = "RenderingSystem";
+		this.m_renderingSystem = BeefHush.Entity(Scene.CreateEntityWithKey(this.m_scene, (char8*)renderSystemName.ToRawData().Ptr, (uint64)renderSystemName.Length));
+		
+		let handle = this.m_renderingSystem.GetComponent<RenderingSystemAPI>();
+		const StringView path = "res://decahedron.glb";
+		uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
+
+		this.m_bulletMeshRef = .(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
+		// Make it invisible, but the MeshReference Component is still there
+		this.m_bulletMeshRef.RemoveComponent<WorldTransform>();
+		this.m_bulletMeshRef.RemoveComponent<LocalTransform>();
 	}
 
 	public void OnShutdown()
 	{
-
+		Scene.DestroyEntity(this.m_scene, this.m_bulletMeshRef.InnerEntity());
 	}
 
 	private void ManaSubsystem(float delta) {
@@ -51,7 +65,7 @@ class SpellSystem : GameSystem
 		this.m_totalTime += delta;
 		this.ManaSubsystem(delta);
 		const Vector3 bulletScale = Constants.Vector3_ONE * 30.0f;
-		this.m_fireSpellsQuery.Each<Spell, Controller, ManaStat, LocalTransform>(scope (entityRef, spell, controller, manaStat, xform) => {
+		this.m_fireSpellsQuery.Each<Spell, Controller, ManaStat, WorldTransform>(scope (entityRef, spell, controller, manaStat, xform) => {
 			float diff = this.m_totalTime - spell.lastFireTime;
 			// TODO: Make the component decide if this is a mouse button press or something else
 			bool mouseWasPressed = InputManager.GetMouseButtonPressed((EMouseButton)controller.fire);
@@ -72,7 +86,9 @@ class SpellSystem : GameSystem
 				bulletXform.SetScale(bulletScale);
 				*rig = .(); // Set default vals
 				rig.aabb.pos = xform.GetPositionValue(); // + The direction offset
-				rig.SetVelocity(.(1, 0, 0) * spell.projectileSpeed);
+				Vector3 shootDir = .(1, 0, 0);
+				rig.SetVelocity(shootDir * spell.projectileSpeed);
+				rig.SetAngularVelocity(shootDir * spell.projectileSpeed * 1.5f);
 				Lifetime* bulletLifetime = bulletRootEntity.AddComponent<Lifetime>();
 				// t = d / V
 				bulletLifetime.remaining = spell.range / spell.projectileSpeed;

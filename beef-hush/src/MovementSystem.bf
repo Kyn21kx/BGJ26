@@ -20,6 +20,7 @@ public class MovementSsytem : GameSystem
 		builder.With<PlayerTag>();
 		builder.With<RigidBody>();
 		builder.With<Controller>();
+		builder.With<MovementStat>();
 		
 		this.entityQuery = builder.Build();
 
@@ -39,31 +40,31 @@ public class MovementSsytem : GameSystem
 	}
 
 	public void OnUpdate(float delta){
-		this.entityQuery.Each<PlayerTag, RigidBody, Controller>(scope (entityRef,
-			 tag, rigidBody, controller) => {
+		this.entityQuery.Each<PlayerTag, RigidBody, Controller, MovementStat>(scope (entityRef,
+			 tag, rigidBody, controller, movementStat) => {
 				Vector3 movement = .();
 
 				if(Hush.InputManager.IsKeyDown((EKeyCode)controller.up)){
-					movement.z = 1;
-				}
-				 
-				if(Hush.InputManager.IsKeyDown((EKeyCode)controller.down)){
 					movement.z = -1;
 				}
 				 
+				if(Hush.InputManager.IsKeyDown((EKeyCode)controller.down)){
+					movement.z = 1;
+				}
+				 
 				if(Hush.InputManager.IsKeyDown((EKeyCode)controller.left)){
-					movement.x = 1;
+					movement.x = -1;
 				}
 				 
 				if(Hush.InputManager.IsKeyDown((EKeyCode)controller.right)){
-					movement.x = -1;
+					movement.x = 1;
 				}
 				 
 				if(movement != Constants.Vector3_ZERO){
 					movement = movement.normalized();
 				}
 
-				 rigidBody.SetVelocity(movement);
+				 rigidBody.SetVelocity(movement * movementStat.speed);
 			});
 	}
 

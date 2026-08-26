@@ -68,6 +68,11 @@ public struct Entity { //: BindingCompletenessCheck<Hush.Entity, Entity> {
 		return (T*)compMut;
 	}
 
+	public bool RemoveComponent<T>() {
+		uint64 compId = this.RegisterCompIfNeeded<T>();
+		return this.m_innerEntity.RemoveComponentRaw(compId);
+	}
+
 	public T* GetComponentConst<T>() {
 		uint64 compId = this.RegisterCompIfNeeded<T>();
 		void* compConst = this.m_innerEntity.GetComponentConstRaw(compId);

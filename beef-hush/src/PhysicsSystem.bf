@@ -13,6 +13,7 @@ public class PhysicsSystem : GameSystem{
 		QueryBuilder builder = .();
 		builder.With<RigidBody>();
 		builder.With<WorldTransform>();
+		builder.With<LocalTransform>();
 		this.entityQuery = builder.Build();
 	}
 
@@ -21,7 +22,7 @@ public class PhysicsSystem : GameSystem{
 		Console.WriteLine("Physics system was shutdown!");
 	}
 	public void OnUpdate(float delta){
-		this.entityQuery.Each<RigidBody, WorldTransform>(scope (entityRef, rig, xformRaw) => {
+		this.entityQuery.Each<RigidBody, WorldTransform, LocalTransform>(scope (entityRef, rig, xformRaw, localXform) => {
 			if (!rig.dynamic) {
 				return;
 			}
@@ -30,6 +31,9 @@ public class PhysicsSystem : GameSystem{
 
 			rig.aabb.pos += rig.vel * delta;
 			xformRaw.SetPosition(rig.aabb.pos);
+			Vector3 euler = localXform.GetEulerAngles();
+			euler += rig.angularVel;
+			xformRaw.SetEulerAngles(&euler);
 			// TODO: Do angular rotation
 		});
 	}
