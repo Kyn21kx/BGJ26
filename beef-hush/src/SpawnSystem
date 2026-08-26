@@ -1,0 +1,184 @@
+namespace BeefHush;
+
+using Hush;
+using System;
+
+enum SpawnTrigger
+{
+	OverTime,
+	OnDeath,
+	OnHit
+}
+
+//NOTE: When the event is sent, a request is made on a entity based on it's type
+struct SpawnRequest
+{
+	public BeefHush.Entity spawner;
+	public SpawnTrigger trigger;
+	public Vector3 position;
+}
+
+[RegisterSystem]
+public class SpawnSystem : GameSystem
+{
+	private Query spawnerQuery;
+	private float totalTime;
+	private Random m_random;
+
+	public delegate void SpawnRequestHandler(SpawnRequest request);
+	public SpawnRequestHandler SpawnRequested;
+
+	public void Init(){
+		Console.WriteLine("Spawn system initialized.");
+
+		this.totalTime = 0.0f;
+		this.m_random = new Random();
+
+		QueryBuilder builder = .();
+		builder.With<Spawner>();
+		builder.With<LocalTransform>();
+
+		this.spawnerQuery = builder.Build();
+
+		this.spawnerQuery.Each<Spawner>(scope (entity, spawner) => {
+			spawner.lastSpawnTime = 0.0f;
+			spawner.currentSpawnCount = 0;
+		});
+	}
+
+	public void OnShutdown(){
+		Console.WriteLine("Spawn system shutdown.");
+		delete m_random;
+	}
+
+	//NOTE: Most useful for waves
+	public void ActivateSpawner(BeefHush.Entity entity)
+	{
+		Spawner* spawner = entity.GetComponent<Spawner>();
+		if (spawner == null)
+			return;
+
+		spawner.isActive = true;
+		spawner.lastSpawnTime = this.totalTime;
+		spawner.currentSpawnCount = 0;
+	}
+
+	public void ActivateAll()
+	{
+		this.spawnerQuery.Each<Spawner>(scope (entity, spawner) => {
+			spawner.isActive = true;
+			spawner.lastSpawnTime = this.totalTime;
+			spawner.currentSpawnCount = 0;
+		});
+	}
+
+	private Vector3 GetRandomizedOffset(float radius)
+	{
+		if (radius <= 0.0f)
+			return .(0, 0, 0);
+
+		float angle = (float)m_random.NextDouble() * Math.PI_f * 2.0f;
+		//NOTE: Distribution biased to the center
+		float dist = (float)m_random.NextDouble() * radius;
+		return .(Math.Cos(angle) * dist, 0.0f, Math.Sin(angle) * dist);
+	}
+
+	public void OnUpdate(float delta){
+		this.totalTime += delta;
+
+		this.spawnerQuery.Each<Spawner, LocalTransform>(
+			scope (entity, spawner, transform) =>
+			{
+				this.ProcessTimedSpawn(
+					entity,
+					spawner,
+					transform
+				);
+			}
+		);
+	}
+
+	private void ProcessTimedSpawn(BeefHush.Entity entity, Spawner* spawner,LocalTransform* transform){
+
+		if (!spawner.isActive)
+			return;
+
+		//NOTE: Not sure is needed?
+		if (spawner.spawnRate <= 0.0f){
+			return;
+		}
+
+		//NOTE: Got a feeling this has a bug
+		if (spawner.maxSpawnCount > 0 && (spawner.currentSpawnCount >= spawner.maxSpawnCount)){
+			return;
+		}
+
+		float elapsed = this.totalTime - spawner.lastSpawnTime;
+
+		if (elapsed < spawner.spawnRate){
+			return;
+		}
+
+		spawner.lastSpawnTime = this.totalTime;
+
+		SpawnRequest request = .();
+		request.spawner = entity;
+		request.trigger = .OverTime;
+		request.position = *transform.GetPosition() + GetRandomizedOffset(spawner.spawnRadius);
+
+		this.EmitSpawn(request);
+	}
+
+	public void SpawnOnDeath(BeefHush.Entity entity){
+		this.EmitSpawnEvent(entity, .OnDeath);
+	}
+
+	public void SpawnOnHit(BeefHush.Entity entity){
+		this.EmitSpawnEvent(entity, .OnHit);
+	}
+
+	private void EmitSpawnEvent(BeefHush.Entity entity,SpawnTrigger trigger){
+		Spawner* spawner = entity.GetComponent<Spawner>();
+		if (spawner == null)
+			return;
+
+		LocalTransform* transform = entity.GetComponent<LocalTransform>();
+		if (transform == null)
+			return;
+
+		SpawnRequest request = .();
+		request.spawner = entity;
+		request.trigger = trigger;
+		request.position = *transform.GetPosition() + GetRandomizedOffset(spawner.spawnRadius);
+
+		this.EmitSpawn(request);
+	}
+
+	private void EmitSpawn(SpawnRequest request)
+	{
+		if (this.SpawnRequested != null){
+			this.SpawnRequested(request);
+		}	
+
+		Spawner* spawner = request.spawner.GetComponent<Spawner>();
+		if (spawner != null){
+			spawner.currentSpawnCount++;
+		}
+	}
+
+	public void OnFixedUpdate(float delta)
+	{
+	}
+
+	public void OnRender()
+	{
+	}
+
+	public void OnPreRender()
+	{
+	}
+
+	public void OnPostRender()
+	{
+	}
+}
