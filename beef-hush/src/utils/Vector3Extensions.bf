@@ -119,7 +119,7 @@ extension Vector3
 		return ((x * x) + (y * y) + ( z * z));
 	}
 
-	public Vector3 normalize(float epsilon = Constants.EPSILON, Vector3 zero_guard = Constants.Vector3_ZERO){
+	public Vector3 normalized(float epsilon = Constants.EPSILON, Vector3 zero_guard = Constants.Vector3_ZERO){
 		float length = this.length();
 		if(length < epsilon){
 			return zero_guard;

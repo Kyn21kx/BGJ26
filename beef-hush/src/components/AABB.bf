@@ -1,6 +1,8 @@
 namespace Hush;
 
 using System;
+
+[CRepr]
 public struct AABB
 {	
 	public Vector3 size;

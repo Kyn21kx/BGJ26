@@ -6,6 +6,10 @@ using System;
 [RegisterSystem]
 public class MovementSsytem : GameSystem
 {
+
+	// Fixing player scale at runtime, lol
+	const Hush.Vector3 PLAYER_SCALE = Constants.Vector3_ONE * 0.001f;
+
 	private Query entityQuery;
 	private Vector3 position = .();
 	
@@ -18,6 +22,15 @@ public class MovementSsytem : GameSystem
 		builder.With<Controller>();
 		
 		this.entityQuery = builder.Build();
+
+		this.entityQuery.EachEntity(scope (entityRef) => {
+			LocalTransform* xform = entityRef.GetComponent<LocalTransform>();
+			RigidBody* rig = entityRef.GetComponent<RigidBody>();
+			*rig = .();
+			xform.SetScale(PLAYER_SCALE);
+			rig.aabb.pos = xform.GetPositionValue();
+		});
+
 	}
 
 	public void OnShutdown()
@@ -26,11 +39,8 @@ public class MovementSsytem : GameSystem
 	}
 
 	public void OnUpdate(float delta){
-		this.entityQuery.Each<PlayerTag,
-		 Controller, RigidBody>(scope (entityRef,
-			 tag, controller, rigidBody) => {
-
-
+		this.entityQuery.Each<PlayerTag, RigidBody, Controller>(scope (entityRef,
+			 tag, rigidBody, controller) => {
 				Vector3 movement = .();
 
 				if(Hush.InputManager.IsKeyDown((EKeyCode)controller.up)){
@@ -50,8 +60,7 @@ public class MovementSsytem : GameSystem
 				}
 				 
 				if(movement != Constants.Vector3_ZERO){
-					// movement = movement.normalized();
-
+					movement = movement.normalized();
 				}
 
 				 rigidBody.SetVelocity(movement);

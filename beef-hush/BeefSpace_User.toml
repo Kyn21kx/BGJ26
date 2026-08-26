@@ -1,7 +1,7 @@
 FileVersion = 1
 LastConfig = "Debug"
 LastPlatform = "Win64"
-RecentFilesList = ["src\\EnvironmentSystem.bf", "src\\components\\Controller.bf", "src\\MovementSystem.bf", "src\\LifetimeSystem.bf", "src\\hacked\\WorldTransform.bf", "src\\ParticleSystem.bf", "src\\SpellSystem.bf", "src\\components\\RigidBody.bf", "src\\PhysicsSystem.bf", "src\\components\\Particle.bf", "src\\generated\\Entity.bf", "src\\Entity.bf", "src\\components\\Spell.bf", "src\\Exports.bf", "src\\components\\PlayerTag.bf", "src\\CompSerializationRegistry.bf", "src\\components\\Pickup.bf", "src\\generated\\EKeyCode.bf", "src\\System.bf", "src\\TestSystem.bf"]
+RecentFilesList = ["src\\components\\AABB.bf", "src\\generated\\Entity.bf", "src\\EnvironmentSystem.bf", "src\\components\\Controller.bf", "src\\MovementSystem.bf", "src\\LifetimeSystem.bf", "src\\hacked\\WorldTransform.bf", "src\\ParticleSystem.bf", "src\\SpellSystem.bf", "src\\PhysicsSystem.bf", "src\\components\\Particle.bf", "src\\Entity.bf", "src\\components\\Spell.bf", "src\\Exports.bf", "src\\components\\PlayerTag.bf", "src\\CompSerializationRegistry.bf", "src\\components\\Pickup.bf", "src\\generated\\EKeyCode.bf", "src\\System.bf", "src\\TestSystem.bf"]
 
 [MainWindow]
 X = 772
@@ -44,7 +44,7 @@ Type = "TabbedView"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "MovementSystem.bf"
-TabWidth = 158.0
+TabWidth = 148.0
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\MovementSystem.bf"
@@ -62,13 +62,12 @@ CursorPos = 256
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
-Active = true
 TabLabel = "EnvironmentSystem.bf"
 TabWidth = 158.0
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\EnvironmentSystem.bf"
-CursorPos = 242
+CursorPos = 220
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
