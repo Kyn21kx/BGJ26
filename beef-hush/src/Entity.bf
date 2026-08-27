@@ -6,7 +6,8 @@ public struct Entity { //: BindingCompletenessCheck<Hush.Entity, Entity> {
 	private Hush.Entity m_innerEntity;
 	// private bool _IsBindingValid = AllMethodsCovered();
 
-	public uint64 Id => this.m_innerEntity.GetId();
+	// Cached to not have to go through 4 frames of the stack
+	public uint64 Id { get; private set mut;}
 
 	public int32 ChildCount => this.m_innerEntity.GetChildCount();
 
@@ -14,10 +15,12 @@ public struct Entity { //: BindingCompletenessCheck<Hush.Entity, Entity> {
 
 	public this() {
 		this.m_innerEntity = .();
+		this.Id = 0;
 	}
 
 	public this(Hush.Entity innerEntity) {
 		this.m_innerEntity = innerEntity;
+		this.Id = this.m_innerEntity.GetId();
 	}
 
 	private uint64 RegisterCompIfNeeded<T>() {

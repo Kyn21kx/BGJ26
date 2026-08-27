@@ -8,7 +8,7 @@ public class MovementSsytem : GameSystem
 {
 
 	// Fixing player scale at runtime, lol
-	const Hush.Vector3 PLAYER_SCALE = Constants.Vector3_ONE * 0.001f;
+	const Hush.Vector3 PLAYER_SCALE = Constants.Vector3_ONE * 0.067f;
 
 	private Query entityQuery;
 	private Vector3 position = .();

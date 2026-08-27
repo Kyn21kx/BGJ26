@@ -44,3 +44,6 @@ public struct RigidBody
         this.acc = acceleration;
     }
 }
+
+[HushComponent, CRepr]
+public struct Collider {}

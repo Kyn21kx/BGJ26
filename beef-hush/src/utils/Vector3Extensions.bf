@@ -170,3 +170,13 @@ extension Vector3
 	}
 
 }
+
+extension I32Vector3 {
+
+	public this(int32 x, int32 y, int32 z){
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+	
+}

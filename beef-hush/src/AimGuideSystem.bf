@@ -3,10 +3,12 @@ namespace BeefHush;
 using Hush;
 using System;
 
+// Debug system, could turn into actual system
 [RegisterSystem]
 class AimGuideSystem : GameSystem
 {
 	Query m_aimGuideQuery;
+	Query m_rotatingPlayers;
 	BeefHush.Entity m_mainCamEntity;
 	bool instanced;
 
@@ -42,6 +44,12 @@ class AimGuideSystem : GameSystem
 		mainCamQ.EachEntity(scope (entityRef) => {
 		   this.m_mainCamEntity = entityRef;
 		});
+
+		builder = .();
+		builder.With<PlayerTag>();
+		builder.With<LocalTransform>();
+		builder.With<RigidBody>();
+		this.m_rotatingPlayers = builder.Build();
 	}
 
 	public void OnShutdown()
@@ -65,6 +73,53 @@ class AimGuideSystem : GameSystem
 		return worldPos;
 	}
 
+	public Vector3 LookRotationEuler(Vector3 source, Vector3 target, Vector3 up) {
+		var up;
+		Vector3 fwd = target - source;
+
+		if (fwd.length() < 0.0001f) {
+			return Constants.Vector3_ZERO;
+		}
+
+		fwd = fwd.normalized();
+
+		if (Math.Abs(fwd.dot(up)) > 0.999f) {
+			up = Vector3(0f, 0f, 1f);
+		}
+
+		Vector3 right = fwd.cross(up).normalized();
+
+		Vector3 actualUp = right.cross(fwd).normalized();
+		float[9] rotationMat = .();
+
+		rotationMat[0] = right.x;
+		rotationMat[1] = right.y;
+		rotationMat[2] = right.z;
+
+		rotationMat[3] = actualUp.x;
+		rotationMat[4] = actualUp.y;
+		rotationMat[5] = actualUp.z;
+
+		rotationMat[6] = -fwd.x;
+		rotationMat[7] = -fwd.y;
+		rotationMat[8] = -fwd.z;
+
+		Vector3 euler = .();
+		const float MODEL_CORRECTION_FACTOR = -1f;
+		if (Math.Abs(rotationMat[2]) < 1f - Constants.EPSILON) {
+			//euler.x = -Math.Asin(rotationMat[2]);
+			euler.y = Math.Atan2(rotationMat[6], rotationMat[8]);
+			//euler.z = Math.Atan2(rotationMat[1], rotationMat[0]);
+			return euler;
+		}
+
+		// euler.x = (rotationMat[2] > 0.0f) ? -Math.PI_f / 2.0f : Math.PI_f / 2.0f;
+		euler.y = Math.Atan2(-rotationMat[6], rotationMat[4]);
+		//euler.z = 0.0f;
+
+		return euler;
+	}
+
 	public void OnUpdate(float delta)
 	{
 		if (!this.instanced) {
@@ -73,6 +128,13 @@ class AimGuideSystem : GameSystem
 		}
 		this.m_aimGuideQuery.Each<LocalTransform, AimGuide>(scope (entityRef, xform, guide) => {
 			xform.SetPosition(GetPosInWorldSpace(guide.depth));
+		});
+
+		this.m_rotatingPlayers.Each<PlayerTag, LocalTransform, RigidBody>(scope (entityRef, tag, localXform, rig) => {
+			Vector3 target = GetPosInWorldSpace(0f);
+			target.y = 0f;
+			Vector3 rotationTarget = LookRotationEuler(target, rig.aabb.pos, .(0f, 1f, 0f));
+			localXform.SetEulerAngles(&rotationTarget);
 		});
 	}
 
