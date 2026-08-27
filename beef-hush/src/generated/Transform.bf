@@ -8,6 +8,22 @@ public struct Transform {
 	public char8[16] m_member2;
 	public char8[1] m_member3;
 
+	public Matrix4 InvXForm(Transform* other) {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__InvXForm(&this, other);
+	}
+
+	public Matrix4 XForm(Transform* other) {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__XForm(&this, other);
+	}
+
+	public void GetTransformationMatrixUnsafe(float* outMatrix, uint64 count) {
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetTransformationMatrixUnsafe(&this, outMatrix, count);
+	}
+
+	public Matrix4 GetTransformationMatrix() {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetTransformationMatrix(&this);
+	}
+
 	public Vector3 Right() {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__Right(&this);
 	}

@@ -53,6 +53,10 @@ public struct HushFuncPtrTable {
 	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__Forward;
 	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__Up;
 	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__Right;
+	public function Matrix4(Transform* self) HushFuncPtr_Hush__Transform__GetTransformationMatrix;
+	public function void(Transform* self,float* ,uint64) HushFuncPtr_Hush__Transform__GetTransformationMatrixUnsafe;
+	public function Matrix4(Transform* self,Transform*) HushFuncPtr_Hush__Transform__XForm;
+	public function Matrix4(Transform* self,Transform*) HushFuncPtr_Hush__Transform__InvXForm;
 	public function bool(EKeyCode) HushFuncPtr_Hush__InputManager__IsKeyDown;
 	public function bool(EKeyCode) HushFuncPtr_Hush__InputManager__IsKeyDownThisFrame;
 	public function bool(EKeyCode) HushFuncPtr_Hush__InputManager__IsKeyUp;
@@ -62,4 +66,8 @@ public struct HushFuncPtrTable {
 	public function Vector2() HushFuncPtr_Hush__InputManager__GetMousePosition;
 	public function Vector2() HushFuncPtr_Hush__InputManager__GetMouseAcceleration;
 	public function void(ECursorLockMode) HushFuncPtr_Hush__InputManager__SetCursorLock;
+	public function Vector3(Camera* self,Matrix4 ,Vector2 ,Vector3*) HushFuncPtr_Hush__Camera__ScreenToWorldPos;
+	public function Vector3(Camera* self,float* ,Vector2 ,Vector3*) HushFuncPtr_Hush__Camera__ScreenToWorldPosUnsafe;
+	public function Vector3(Camera* self,Vector3 ,Vector3 ,float) HushFuncPtr_Hush__Camera__ProjectPlanePosition;
+	public function float(Camera* self) HushFuncPtr_Hush__Camera__GetFarPlane;
 }

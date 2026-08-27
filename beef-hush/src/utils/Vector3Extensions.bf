@@ -164,5 +164,9 @@ extension Vector3
 		return (angle * (Constants.PI / 180.0f));
 	}
 
+	public override void ToString(System.String strBuffer)
+	{
+		strBuffer.Append(scope $"({this.x}, {this.y}, {this.z})");
+	}
 
 }
