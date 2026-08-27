@@ -20,3 +20,11 @@ static class Constants
 	public const Vector2  Vector2_UNIY_Z  = Vector2(0.0f, 0.0f);
 
 }
+
+public enum EEntityTag : int32 {
+	None = 0,
+	Player,
+	Enemy,
+	Wall,
+	Spell
+}

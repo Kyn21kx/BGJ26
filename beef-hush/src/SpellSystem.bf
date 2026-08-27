@@ -41,7 +41,25 @@ class SpellSystem : GameSystem
 		mainCamQ.EachEntity(scope (entityRef) => {
 		   this.m_mainCamEntity = entityRef;
 		});
+		PhysicsSystem.OnCollisionEvent.Add(new (a, b) => {
+			ColliderArgs* spellColl = &b;
+			ColliderArgs* otherColl = &a;
+			if (a.collider.identifierTag == (int32)EEntityTag.Spell) {
+				spellColl = &a;
+				otherColl = &b;
+			}
+			else if (b.collider.identifierTag != (int32)EEntityTag.Spell) {
+				// Not a spell collision
+				return;
+			}
+
+			// Now we can handle collisions with spells
+			if (otherColl.collider.identifierTag == (int32)EEntityTag.Enemy) {
+				// Damage the enemy
+			}
+		});
 	}
+
 
 	public void InitializeMeshes() {
 		const StringView renderSystemName = "RenderingSystem";

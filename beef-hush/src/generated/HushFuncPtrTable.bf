@@ -48,6 +48,7 @@ public struct HushFuncPtrTable {
 	public function Vector3*(Transform* self) HushFuncPtr_Hush__Transform__GetPosition;
 	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__GetPositionValue;
 	public function void(Transform* self,Vector3) HushFuncPtr_Hush__Transform__SetScale;
+	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__GetScale;
 	public function void(Transform* self,Vector3*) HushFuncPtr_Hush__Transform__SetEulerAngles;
 	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__GetEulerAngles;
 	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__Forward;
@@ -70,4 +71,5 @@ public struct HushFuncPtrTable {
 	public function Vector3(Camera* self,float* ,Vector2 ,Vector3*) HushFuncPtr_Hush__Camera__ScreenToWorldPosUnsafe;
 	public function Vector3(Camera* self,Vector3 ,Vector3 ,float) HushFuncPtr_Hush__Camera__ProjectPlanePosition;
 	public function float(Camera* self) HushFuncPtr_Hush__Camera__GetFarPlane;
+	public function void(MeshReference* self,Vector3* ,Vector3*) HushFuncPtr_Hush__MeshReference__CalculateBounds;
 }

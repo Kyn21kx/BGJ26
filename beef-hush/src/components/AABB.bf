@@ -16,7 +16,7 @@ public struct AABB
 	public Vector3 min => pos - size / 2;
 	public Vector3 max => pos + size / 2;
 
-	public bool intersects(AABB test){
+	public bool intersects(in AABB test){
 		return  (Math.Abs(pos.x - test.pos.x) <= (size.x + test.size.x) / 2) &&
 				(Math.Abs(pos.y - test.pos.y) <= (size.y + test.size.y) / 2) &&
 				(Math.Abs(pos.z - test.pos.z) <= (size.z + test.size.z) / 2);

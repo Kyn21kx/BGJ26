@@ -7,7 +7,7 @@ using Hush;
 /// @brief Simple unbounded spatial grid implementation, this one unfortunately does allocate on the heap
 struct SpatialGrid {
 
-	private const float CELL_SIZE = 200.0f;
+	private const float CELL_SIZE = 2.0f; // TODO: benchmark
 	private const float INV_CELL_SIZE = 1.0f / CELL_SIZE;
 	private Dictionary<uint64, List<uint64>> m_entitiesAtCell;
 
@@ -30,12 +30,31 @@ struct SpatialGrid {
 		const uint32 P3 = 83492791;
 
 		// Reinterpret cast to uint32_t (preserves bit pattern)
-		uint32 x = (uint32)cell.x;
-		uint32 y = (uint32)cell.y;
-		uint32 z = (uint32)cell.z;
+		uint64 x = (uint64)cell.x;
+		uint64 y = 0; // Keep in XZ plane
+		uint64 z = (uint64)cell.z;
 
 		// Combine using prime multiplication and XOR
-		return (uint64)((x * P1) ^ (y * P2) ^ (z * P3));
+		uint64 hash = unchecked((x * P1) ^ (y * P2) ^ (z * P3));
+		return (uint64)hash;
+	}
+
+	public void EachNeighborAt(Vector3 pos, int32 depth, uint64 except, delegate void(uint64) callable) {
+		I32Vector3 truncated = this.GetCellIndex(pos);
+		for (int32 dx = -depth; dx <= depth; dx++) {
+			for (int32 dz = -depth; dz <= depth; dz++) {
+				truncated.x += dx;
+				truncated.z += dz;
+				uint64 hash = this.HashCell(truncated);
+				uint64 outKey;
+				List<uint64> entitiesAt;
+				bool contains = this.m_entitiesAtCell.TryGet(hash, out outKey, out entitiesAt);
+				for (int32 i = 0; contains && i < entitiesAt.Count; i++) {
+					if (entitiesAt[i] == except) continue;
+					callable(entitiesAt[i]);
+				}
+			}
+		}
 	}
 
 	public void RegisterEntityAt(uint64 entity, Vector3 position) {
@@ -49,6 +68,7 @@ struct SpatialGrid {
 			foundEntities = new .();
 			this.m_entitiesAtCell[hashedCell] = foundEntities;
 		}
+		foundEntities.Add(entity);
 	}
 
 	public void ClearNoFree() {

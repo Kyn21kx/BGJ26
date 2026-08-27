@@ -8,6 +8,7 @@ public struct RigidBody
     public AABB aabb;
     public Vector3 vel;
     public Vector3 acc;
+	public Vector3 physicsImpulse;
 	public Vector3 angularVel;
 
     public bool dynamic;
@@ -17,6 +18,7 @@ public struct RigidBody
 		this.vel = Constants.Vector3_ZERO;
 		this.acc = Constants.Vector3_ZERO;
 		this.dynamic = true;
+		this.physicsImpulse = Constants.Vector3_ZERO;
 		this.angularVel = Constants.Vector3_ZERO;
 	}
 
@@ -46,4 +48,6 @@ public struct RigidBody
 }
 
 [HushComponent, CRepr]
-public struct Collider {}
+public struct Collider {
+	public int32 identifierTag; // Useful for arbitrary ID data, like, 0 for player, 1 for enemy and such
+}
