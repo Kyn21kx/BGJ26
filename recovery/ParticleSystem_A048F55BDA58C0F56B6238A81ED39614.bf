@@ -7,6 +7,7 @@ using System;
 class ParticleSystem : GameSystem
 {
 	private const uint8 MAX_PARTICLES_COUNT = 2;
+	//NOTE: Available particles should contain virtual path
 	private const StringView [MAX_PARTICLES_COUNT] AvailableParticles = .("Particle1","Particle2");
 	private Query m_emitterQuery;
 	private float m_totalTime;
@@ -29,10 +30,11 @@ class ParticleSystem : GameSystem
 			emitter.lastEmissionTime = 0;
 		});
 		this.m_random = new .();
-		this.InitializeParticleMesh();
 	}
 
+
 	public void InitializeParticleMesh(){
+		//copy paste from Spell system
 		const StringView renderSystemName = "RenderingSystem";
 		this.m_renderingSystem = BeefHush.Entity(Scene.CreateEntityWithKey(this.m_scene,(char8*)renderSystemName.ToRawData().Ptr, (uint64)renderSystemName.Length));
 
@@ -44,6 +46,7 @@ class ParticleSystem : GameSystem
 
 			this.m_particlesMeshRef[index].RemoveComponent<WorldTransform>();
 			this.m_particlesMeshRef[index].RemoveComponent<LocalTransform>();
+
 		}
 	}
 
@@ -52,50 +55,44 @@ class ParticleSystem : GameSystem
 	}
 
 	public void OnUpdate(float delta){
-		this.m_totalTime += delta;
+		this.m_totalTime =+ delta;
 
 		this.m_emitterQuery.Each<ParticleEmitter, LocalTransform>(scope (entityRef, emitter, emitterxForm) => {
-
-			if (this.m_totalTime - emitter.lastEmissionTime < emitter.emitRate){
-				return;
-			}
-
-			if (emitter.currentParticleCount >= emitter.maxParticles){
-				return;
-			}
-
-			emitter.lastEmissionTime = this.m_totalTime;
-			emitter.currentParticleCount++;
 
 			let handle = this.m_renderingSystem.GetComponent<RenderingSystemAPI>();
 			uint64 rootEntId = handle.instantiateMeshEntities(&(AvailableParticles[emitter.particleAssetId][0]), handle.instance);
 
+
+			if(!(this.m_totalTime - emitter.lastEmissionTime >= emitter.emitRate)){
+				return;
+			}
+
+			emitter.currentParticleCount ++;
+
+			if(emitter.currentParticleCount > emitter.maxParticles){
+				return;
+			}
+
 			BeefHush.Entity particle = .(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
 			var lifeTime = particle.AddComponent<Lifetime>();
 			lifeTime.remaining = emitter.particleLifeTime;
-			lifeTime.initialLifetime = emitter.particleLifeTime;
 
-			particle.AddComponent<ParticleTag>();
 
 			var localxForm = particle.GetComponent<LocalTransform>();
-			float scale = RandomizeScale(emitter.minScale, emitter.maxScale);
-			localxForm.SetScale(Constants.Vector3_ONE * scale);
+			//TODO: add randomize setScale()
+			localxForm.SetScale(Constants.Vector3_ONE);
+			localxForm.SetPosition(*emitterxForm.GetPosition());
 
-			Vector3 pos = RandomizePosition(*emitterxForm.GetPosition());
-			localxForm.SetPosition(pos);
+			emitter.lastEmissionTime = this.m_totalTime;
 		});
 	}
 
-	public float RandomizeScale(float min, float max){
-		float t = (float)m_random.NextDouble();
-		return min + (max - min) * t;
+	public void RandomizeScale(){
+
 	}
 
-	public Vector3 RandomizePosition(Vector3 basePos){
-		float offsetX = ((float)m_random.NextDouble() - 0.5f) * 2.0f;
-		float offsetY = ((float)m_random.NextDouble() - 0.5f) * 2.0f;
-		float offsetZ = ((float)m_random.NextDouble() - 0.5f) * 2.0f;
-		return basePos + Vector3(offsetX, offsetY, offsetZ);
+	public void RandomizePosition(){
+
 	}
 
 	public void OnFixedUpdate(float delta){

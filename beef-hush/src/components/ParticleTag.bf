@@ -4,8 +4,6 @@ using Hush;
 using System;
 
 [HushComponent, CRepr]
-struct Lifetime
+struct ParticleTag
 {
-	public float remaining;
-	public float initialLifetime;
 }
