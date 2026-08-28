@@ -164,6 +164,13 @@ extension Vector3
 		return (angle * (Constants.PI / 180.0f));
 	}
 
+	public Vector3 Lerp(Vector3 target, float t) {
+		var t;
+		if (t < 0f) t = 0f;
+		else if (t > 1f) t = 1f;
+		return this + (target - this) * t;
+	}
+
 	public override void ToString(System.String strBuffer)
 	{
 		strBuffer.Append(scope $"({this.x}, {this.y}, {this.z})");
