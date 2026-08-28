@@ -2,6 +2,7 @@ namespace BeefHush;
 
 using Hush;
 using System;
+using System.Collections;
 
 [RegisterSystem]
 class SpellSystem : GameSystem
@@ -14,8 +15,11 @@ class SpellSystem : GameSystem
 	private BeefHush.Entity m_bulletMeshRef;
 	private BeefHush.Entity m_mainCamEntity;
 
+	private List<uint64> m_entitiesToDelete;
+
 	public void Init()
 	{
+		this.m_entitiesToDelete = new .(64);
 		this.m_totalTime = 0f;
 		QueryBuilder builder = .();
 		builder.With<Spell>();
@@ -53,9 +57,14 @@ class SpellSystem : GameSystem
 				return;
 			}
 
+			// TODO: Make it a switch
 			// Now we can handle collisions with spells
 			if (otherColl.collider.identifierTag == (int32)EEntityTag.Enemy) {
 				// Damage the enemy
+			}
+			else if (otherColl.collider.identifierTag == (int32)EEntityTag.Wall) {
+				// Do whatever the spell needs to do on collision, then delete it
+				this.m_entitiesToDelete.Add(spellColl.id);
 			}
 		});
 	}
@@ -128,9 +137,11 @@ class SpellSystem : GameSystem
 				uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
 
 				let bulletRootEntity = BeefHush.Entity(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
-				RigidBody* rig = bulletRootEntity.AddComponent<RigidBody>();
 				var bulletXform = bulletRootEntity.GetComponent<LocalTransform>();
 				bulletXform.SetScale(bulletScale);
+				let collider = bulletRootEntity.AddComponent<Collider>();
+				collider.identifierTag = (int32)EEntityTag.Spell;
+				RigidBody* rig = bulletRootEntity.AddComponent<RigidBody>();
 				*rig = .(); // Set default vals
 				rig.aabb.pos = spellRig.aabb.pos; // + The direction offset
 				Vector3 shootDir = this.GetShootDirection(spellRig.aabb.pos);
@@ -161,6 +172,12 @@ class SpellSystem : GameSystem
 
 	public void OnPostRender()
 	{
+		// Workaround
+		for (uint64 ent in this.m_entitiesToDelete) {
+			var ent = Scene.EntityFromIdUnchecked(this.m_scene, ent);
+			Scene.DestroyEntity(this.m_scene, &ent);
+		}
 
+		this.m_entitiesToDelete.Clear();
 	}
 }

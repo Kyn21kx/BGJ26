@@ -67,7 +67,6 @@ public class PhysicsSystem : GameSystem{
 		this.m_spatialGrid.Init();
 
 		PhysicsSystem.OnCollisionEvent.Add(new (a, b) => {
-			// Handle collisions for walls and all of that
 			ColliderArgs* wall = &b;
 			ColliderArgs* other = &a;
 			if (a.collider.identifierTag == (int32)EEntityTag.Wall) {
@@ -75,17 +74,18 @@ public class PhysicsSystem : GameSystem{
 				other = &b;
 			}
 			else if (b.collider.identifierTag != (int32)EEntityTag.Wall) {
-				return; // No wall collision
+				return;
 			}
-			Vector3 desiredVel = other.rig.vel;
-			float velMag = desiredVel.length();
-			Vector3 dirToWall = (wall.rig.aabb.pos - other.rig.aabb.pos);
-			dirToWall.y = 0f;
-			dirToWall = dirToWall.normalized();
-			desiredVel -= (dirToWall * velMag * 1.2f);
 
-			other.rig.physicsImpulse = desiredVel;
-			Console.WriteLine("Collided with wall!");
+			// Snap entity to wall surface
+			Vector3 mtv = other.rig.aabb.CalcMTV(wall.rig.aabb);
+			other.rig.aabb.pos += mtv;
+
+			// Impulse to cancel the component of vel projecting into the wall next frame
+			Vector3 wallNormal = mtv.normalized();
+			float velIntoWall = other.rig.vel.dot(wallNormal);
+			if (velIntoWall < 0f)
+				other.rig.physicsImpulse -= wallNormal * velIntoWall;
 		});
 
 		builder = .();
@@ -127,33 +127,36 @@ public class PhysicsSystem : GameSystem{
 	
 	public void OnUpdate(float delta) {
 		this.m_spatialGrid.ClearNoFree();
-		this.entityQuery.Each<RigidBody, WorldTransform, LocalTransform>(scope (entityRef, rig, xformRaw, localXform) => {
-			if (!rig.dynamic) {
-				return;
-			}
-			//NOTE(cris): Version hecha por claudio
-			rig.vel += rig.acc * delta;
 
-			rig.aabb.pos += rig.vel * delta;
-			rig.aabb.pos += rig.physicsImpulse * delta;
+		// physicsImpulse is a velocity correction accumulated last frame; apply it alongside vel
+		this.entityQuery.Each<RigidBody, WorldTransform, LocalTransform>(scope (entityRef, rig, xformRaw, localXform) => {
+			if (!rig.dynamic) return;
+
+			Vector3 effectiveVel = rig.vel + rig.physicsImpulse;
+			rig.physicsImpulse = .();
+			effectiveVel += rig.acc * delta;
+
+			rig.aabb.pos += effectiveVel * delta;
 			xformRaw.SetPosition(rig.aabb.pos);
 			Vector3 euler = localXform.GetEulerAngles();
 			euler += rig.angularVel;
 			xformRaw.SetEulerAngles(&euler);
-			rig.physicsImpulse = .();
-			// TODO: Do angular rotation
 		});
 
 		// Insertion loop
 		this.m_collidersQuery.Each<RigidBody, Collider>(scope (entityRef, rig, coll) => {
-			// Register the entity at the current position
 			this.m_spatialGrid.RegisterEntityAt(entityRef.Id, rig.aabb.pos);
 		});
 
-		// Check loop
+		// Check loop — collision handler corrects aabb.pos and accumulates physicsImpulse
 		this.m_collidersQuery.Each<RigidBody, Collider>(scope (entityRef, rig, coll) => {
-			// Any entity is only ever checking their immediate neighbors for collisions
 			this.CheckCollisions(rig, coll, entityRef.Id);
+		});
+
+		// Sync collision-corrected positions to transforms before render
+		this.entityQuery.Each<RigidBody, WorldTransform, LocalTransform>(scope (entityRef, rig, xformRaw, localXform) => {
+			if (!rig.dynamic) return;
+			xformRaw.SetPosition(rig.aabb.pos);
 		});
 	}
 

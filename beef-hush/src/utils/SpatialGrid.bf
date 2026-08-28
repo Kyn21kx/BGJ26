@@ -7,7 +7,7 @@ using Hush;
 /// @brief Simple unbounded spatial grid implementation, this one unfortunately does allocate on the heap
 struct SpatialGrid {
 
-	private const float CELL_SIZE = 2.0f; // TODO: benchmark
+	private const float CELL_SIZE = 5.0f; // TODO: benchmark
 	private const float INV_CELL_SIZE = 1.0f / CELL_SIZE;
 	private Dictionary<uint64, List<uint64>> m_entitiesAtCell;
 
@@ -43,8 +43,8 @@ struct SpatialGrid {
 		I32Vector3 truncated = this.GetCellIndex(pos);
 		for (int32 dx = -depth; dx <= depth; dx++) {
 			for (int32 dz = -depth; dz <= depth; dz++) {
-				truncated.x += dx;
-				truncated.z += dz;
+				truncated.x = unchecked(truncated.x + dx);
+				truncated.z = unchecked(truncated.z + dz);
 				uint64 hash = this.HashCell(truncated);
 				uint64 outKey;
 				List<uint64> entitiesAt;
