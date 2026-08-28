@@ -20,9 +20,10 @@ public struct ColliderArgs {
 
 [RegisterSystem]
 public class PhysicsSystem : GameSystem{
+	public static SpatialGrid s_SpatialGrid => s_spatialGrid;
 	private Query entityQuery;
 	private Query m_collidersQuery;
-	private SpatialGrid m_spatialGrid;
+	private static SpatialGrid s_spatialGrid;
 	private Hush.Vector3 position = .();
 	private void* m_scene;
 	private uint64 m_rigTerm;
@@ -34,8 +35,8 @@ public class PhysicsSystem : GameSystem{
 		Console.WriteLine("Physics system was initialized!");
 		QueryBuilder builder = .();
 		this.m_rigTerm = builder.With<RigidBody>();
-		builder.With<WorldTransform>();
-		builder.With<LocalTransform>();
+		EntityRegistry.s_WorldTransform = builder.With<WorldTransform>();
+		EntityRegistry.s_LocalTransform = builder.With<LocalTransform>();
 		this.entityQuery = builder.Build();
 
 		this.entityQuery.Each<RigidBody, WorldTransform, LocalTransform>(scope (entityRef, rig, world, local) => {
@@ -63,8 +64,8 @@ public class PhysicsSystem : GameSystem{
 		builder.With<RigidBody>();
 		this.m_colliderTerm = builder.With<Collider>();
 		this.m_collidersQuery = builder.Build();
-		this.m_spatialGrid = .();
-		this.m_spatialGrid.Init();
+		s_spatialGrid = .();
+		s_spatialGrid.Init();
 
 		PhysicsSystem.OnCollisionEvent.Add(new (a, b) => {
 			ColliderArgs* wall = &b;
@@ -108,11 +109,11 @@ public class PhysicsSystem : GameSystem{
 	public void OnShutdown(){
 		//NOTE(cris):Aqui el sistema de fisicas deberia hacer algo?
 		Console.WriteLine("Physics system was shutdown!");
-		this.m_spatialGrid.Dispose();
+		s_spatialGrid.Dispose();
 	}
 
 	public void CheckCollisions(RigidBody* rig, Collider* coll, uint64 id) {
-		this.m_spatialGrid.EachNeighborAt(rig.aabb.pos, 1, id, scope (otherId) => {
+		s_spatialGrid.EachNeighborAt(rig.aabb.pos, 1, id, scope (otherId) => {
 			// A depth of 2 neighbors will check if their AABB collides
 			BeefHush.Entity other = .(Scene.EntityFromIdUnchecked(this.m_scene, otherId));
 			RigidBody* otherRig = other.GetComponent<RigidBody>(this.m_rigTerm);
@@ -126,7 +127,7 @@ public class PhysicsSystem : GameSystem{
 	}
 	
 	public void OnUpdate(float delta) {
-		this.m_spatialGrid.ClearNoFree();
+		s_spatialGrid.ClearNoFree();
 
 		// physicsImpulse is a velocity correction accumulated last frame; apply it alongside vel
 		this.entityQuery.Each<RigidBody, WorldTransform, LocalTransform>(scope (entityRef, rig, xformRaw, localXform) => {
@@ -145,7 +146,7 @@ public class PhysicsSystem : GameSystem{
 
 		// Insertion loop
 		this.m_collidersQuery.Each<RigidBody, Collider>(scope (entityRef, rig, coll) => {
-			this.m_spatialGrid.RegisterEntityAt(entityRef.Id, rig.aabb.pos);
+			s_spatialGrid.RegisterEntityAt(entityRef.Id, rig.aabb.pos);
 		});
 
 		// Check loop — collision handler corrects aabb.pos and accumulates physicsImpulse

@@ -8,6 +8,8 @@ static class Constants
 	public const float GOLDEN_RATIO = 1.61803f;
 
 	public const Vector3  Vector3_ZERO	  = Vector3(0.0f, 0.0f, 0.0f);
+	public const Vector3  Vector3_UP	  = Vector3(0.0f, 1.0f, 0.0f);
+	public const Vector3  Vector3_RIGHT	  = Vector3(1.0f, 0.0f, 0.0f);
 	public const Vector3  Vector3_ONE 	  = Vector3(1.0f, 1.0f, 1.0f);
 	public const Vector3  Vector3_UNIT_X  = Vector3(1.0f, 0.0f, 0.0f);
 	public const Vector3  Vector3_UNIT_Y  = Vector3(0.0f, 1.0f, 0.0f);

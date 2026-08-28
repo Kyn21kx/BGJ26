@@ -30,10 +30,12 @@ extension Vector3
 		return .(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z);
 	}
 
+	[Commutable]
 	public static Vector3 operator/(Vector3 vec, float scale){
-	return .(vec.x / scale, vec.y / scale, vec.z / scale);
+		return .(vec.x / scale, vec.y / scale, vec.z / scale);
 	}
 
+	[Commutable]
 	public static Vector3 operator/(Vector3 dividend, Vector3 divisor){
 		if (System.Math.Abs(divisor.x) < Constants.EPSILON ||
 			System.Math.Abs(divisor.y) < Constants.EPSILON ||
@@ -46,6 +48,23 @@ extension Vector3
 			 	 dividend.y / divisor.y,
 				 dividend.z / divisor.z);
 	}
+
+	public static Vector3 Min (Vector3 a, Vector3 b) {
+		Vector3 res = .();
+		res.x = a.x < b.x ? a.x : b.x;
+		res.y = a.y < b.y ? a.y : b.y;
+		res.z = a.z < b.z ? a.z : b.z;
+		return res;
+	}
+
+	public static Vector3 Max (Vector3 a, Vector3 b) {
+		Vector3 res = .();
+		res.x = a.x > b.x ? a.x : b.x;
+		res.y = a.y > b.y ? a.y : b.y;
+		res.z = a.z > b.z ? a.z : b.z;
+		return res;
+	}
+
 
 	public  void operator+=(Vector3 rhs)mut{
 		x += rhs.x;
@@ -169,6 +188,10 @@ extension Vector3
 		if (t < 0f) t = 0f;
 		else if (t > 1f) t = 1f;
 		return this + (target - this) * t;
+	}
+
+	public Vector3 ProjectOntoPlane(Vector3 planeNormal) {
+		return this - planeNormal * this.dot(planeNormal);
 	}
 
 	public override void ToString(System.String strBuffer)

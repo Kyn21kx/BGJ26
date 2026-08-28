@@ -17,8 +17,8 @@ public class MovementSsytem : GameSystem
 	{
 		Console.WriteLine("Movement system was initialized!");
 		QueryBuilder builder = .();
-		builder.With<PlayerTag>();
-		builder.With<RigidBody>();
+		EntityRegistry.s_PlayerTag = builder.With<PlayerTag>();
+		EntityRegistry.s_Rig = builder.With<RigidBody>();
 		builder.With<Controller>();
 		builder.With<MovementStat>();
 		
