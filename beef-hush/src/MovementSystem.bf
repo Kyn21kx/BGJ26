@@ -8,7 +8,7 @@ public class MovementSsytem : GameSystem
 {
 
 	// Fixing player scale at runtime, lol
-	const Hush.Vector3 PLAYER_SCALE = Constants.Vector3_ONE * 0.001f;
+	const Hush.Vector3 PLAYER_SCALE = Constants.Vector3_ONE * 0.05f;
 
 	private Query entityQuery;
 	private Vector3 position = .();
@@ -21,10 +21,14 @@ public class MovementSsytem : GameSystem
 		builder.With<RigidBody>();
 		builder.With<Controller>();
 		builder.With<MovementStat>();
-		
+		builder.With<IsStunned>();
 		this.entityQuery = builder.Build();
 
 		this.entityQuery.EachEntity(scope (entityRef) => {
+			if (entityRef.GetComponent<IsStunned>() == null) {
+				entityRef.AddComponent<IsStunned>();
+			}
+
 			LocalTransform* xform = entityRef.GetComponent<LocalTransform>();
 			RigidBody* rig = entityRef.GetComponent<RigidBody>();
 			*rig = .();
@@ -40,8 +44,15 @@ public class MovementSsytem : GameSystem
 	}
 
 	public void OnUpdate(float delta){
-		this.entityQuery.Each<PlayerTag, RigidBody, Controller, MovementStat>(scope (entityRef,
-			 tag, rigidBody, controller, movementStat) => {
+		//Query.Each<>() Overload to support 5 components
+		this.entityQuery.Each<PlayerTag, RigidBody, Controller, MovementStat, IsStunned>(scope (entityRef,
+			 tag, rigidBody, controller, movementStat, stun) => {
+				 //early return and input is ignored
+				if(stun.currentlyStunned){
+					rigidBody.SetVelocity(Constants.Vector3_ZERO);
+					return;
+				}
+
 				Vector3 movement = .();
 
 				if(Hush.InputManager.IsKeyDown((EKeyCode)controller.up)){
@@ -65,9 +76,14 @@ public class MovementSsytem : GameSystem
 				}
 
 				 rigidBody.SetVelocity(movement * movementStat.speed);
-			});
+		});
 	}
 
+
+
+	public void checkStunStatus(){
+
+	}
 	public void OnFixedUpdate(float delta)
 	{
 

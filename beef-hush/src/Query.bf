@@ -167,6 +167,29 @@ public struct Query {
 			}
 		}
 	}
+
+	public delegate void OnEachCallback<T1, T2, T3, T4, T5>(BeefHush.Entity entityRef, T1* arg1, T2* arg2, T3* arg3, T4* arg4, T5* arg5);
+
+	public void Each<T1, T2, T3, T4, T5>(OnEachCallback<T1, T2, T3, T4, T5> callable) {
+		let iterator = this.m_innerQuery.GetIterator();
+		void* engine = EngineDependencies.Instance.Engine;
+		void* scene = EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__HushEngine__GetScene(engine);
+		while (iterator.Next()) {
+			uint64 size = iterator.Size();
+			for (uint64 i = 0; i < size; i++) {
+				uint64 entityId = iterator.GetEntityAt(i);
+				Hush.Entity currEntity = Scene.EntityFromIdUnchecked(scene, entityId);
+				callable(
+					BeefHush.Entity(currEntity),
+					&((T1*)iterator.GetComponentAt(0, (uint64)sizeof(T1)))[i],
+					&((T2*)iterator.GetComponentAt(1, (uint64)sizeof(T2)))[i],
+					&((T3*)iterator.GetComponentAt(2, (uint64)sizeof(T3)))[i],
+					&((T4*)iterator.GetComponentAt(3, (uint64)sizeof(T4)))[i],
+					&((T5*)iterator.GetComponentAt(4, (uint64)sizeof(T5)))[i]
+				);
+			}
+		}
+	}
 	
 
 }
