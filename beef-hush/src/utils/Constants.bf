@@ -6,6 +6,8 @@ static class Constants
 	public const float PI =  3.14159f;
 	public const float EULER = 2.71828f;
 	public const float GOLDEN_RATIO = 1.61803f;
+	public const float RAD2DEG = 180f / PI;
+	public const float DEG2RAD = PI / 180f;
 
 	public const Vector3  Vector3_ZERO	  = Vector3(0.0f, 0.0f, 0.0f);
 	public const Vector3  Vector3_UP	  = Vector3(0.0f, 1.0f, 0.0f);

@@ -100,6 +100,9 @@ public class PhysicsSystem : GameSystem{
 		   	// Local xform
 			mesh.CalculateBounds(&(rig.aabb.pos), &(rig.aabb.size));
 			rig.physicsImpulse = .();
+			rig.vel = .();
+			rig.acc = .();
+			rig.angularVel = .();
 			rig.aabb.pos = localXform.GetPositionValue();
 			localXform.SetScale(globalXform.GetScale());
 			rig.aabb.size *= localXform.GetScale();

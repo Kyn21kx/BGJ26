@@ -3,6 +3,7 @@ namespace BeefHush;
 using Hush;
 using System;
 
+[RegisterSystem]
 public class EnemySystem : GameSystem {
 
 	enum ESensorResult {
@@ -101,7 +102,7 @@ public class EnemySystem : GameSystem {
 					// targetDirection of the enemy could be treated as forward(?
 					Vector3 actualDirectionToPlayer = (enemy.targetPos - rig.aabb.pos).normalized();
 					float angle = enemy.targetDirection.angle_between(actualDirectionToPlayer);
-					if (angle > enemy.coneAngle * 0.5f) {
+					if (angle > (enemy.coneAngle * Constants.DEG2RAD) * 0.5f) {
 						return false;
 					}
 
