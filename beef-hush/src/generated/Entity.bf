@@ -10,6 +10,14 @@ public struct Entity {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__IsAlive(&this);
 	}
 
+	public void QueryName(char8* bufferData, uint64 bufferSize) {
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__QueryName(&this, bufferData, bufferSize);
+	}
+
+	public void GetKey(char8* bufferData, uint64 bufferSize) {
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__GetKey(&this, bufferData, bufferSize);
+	}
+
 	public uint64 GetId() {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__GetId(&this);
 	}

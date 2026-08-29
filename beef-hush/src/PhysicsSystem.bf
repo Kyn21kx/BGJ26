@@ -63,6 +63,7 @@ public class PhysicsSystem : GameSystem{
 		builder = .();
 		builder.With<RigidBody>();
 		this.m_colliderTerm = builder.With<Collider>();
+		EntityRegistry.s_Collider = this.m_colliderTerm;
 		this.m_collidersQuery = builder.Build();
 		s_spatialGrid = .();
 		s_spatialGrid.Init();

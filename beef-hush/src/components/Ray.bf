@@ -25,7 +25,7 @@ struct Ray {
 		float tFar  = Math.Min(Math.Min(tMax.x, tMax.y), tMax.z);
 
 		// Check if box is missed
-		if (tNear > tFar || tFar < 0.0) return false;
+		if (tNear < tFar || tFar < 0.0) return false;
 
 		hitDistance = tNear; // Returns distance along the ray
 		return true;

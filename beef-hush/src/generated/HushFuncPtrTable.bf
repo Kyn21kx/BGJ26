@@ -15,6 +15,8 @@ public struct HushFuncPtrTable {
 	public function int32(Entity* self) HushFuncPtr_Hush__Entity__GetChildCount;
 	public function void(Entity* self,Entity* ,Entity*) HushFuncPtr_Hush__Entity__AddRelationship;
 	public function uint64(Entity* self) HushFuncPtr_Hush__Entity__GetId;
+	public function void(Entity* self,char8* ,uint64 bufferSize) HushFuncPtr_Hush__Entity__GetKey;
+	public function void(Entity* self,char8* ,uint64 bufferSize) HushFuncPtr_Hush__Entity__QueryName;
 	public function bool(Entity* self) HushFuncPtr_Hush__Entity__IsAlive;
 	public function bool(RawQuery.QueryIterator* self) HushFuncPtr_Hush__RawQuery__QueryIterator__Next;
 	public function void(RawQuery.QueryIterator* self) HushFuncPtr_Hush__RawQuery__QueryIterator__Skip;

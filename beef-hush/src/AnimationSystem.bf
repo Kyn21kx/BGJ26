@@ -30,7 +30,7 @@ public class AnimationSystem : GameSystem {
 
 	public void OnUpdate(float delta)
 	{
-		this.m_oscillatedEntities.Each<Oscillator, LocalTransform>(scope (entityRef, oscillator, xform) => {
+		this.m_oscillatedEntities.Each<Oscillator, LocalTransform, WorldTransform>(scope (entityRef, oscillator, xform, globalXform) => {
 			// Go from height min to height max treating height min as a constant
 			oscillator.blend += delta * oscillator.speed;
 			// This is in absolute Y-coords
@@ -45,9 +45,9 @@ public class AnimationSystem : GameSystem {
 			else {
 				currHeight = MathUtils.EaseInOut(oscillator.heightMax, oscillator.heightMin, oscillator.blend);
 			}
-			Vector3 val = xform.GetPositionValue();
+			Vector3 val = globalXform.GetPositionValue();
 			val.y = currHeight;
-			xform.SetPosition(val);
+			globalXform.SetPosition(val);
 		});
 	}
 

@@ -29,7 +29,7 @@ public class SmallSystem : GameSystem {
 		this.m_entityQuery.Each<LocalTransform, PlayerTag, Controller>(scope (entityRef, rawXform, tag, controller) => {
 			// Downcast
 			Hush.Transform* xform = (Hush.Transform*)rawXform;
-			xform.SetScale(PLAYER_SCALE);
+			//xform.SetScale(PLAYER_SCALE);
 			Vector3 pos = xform.GetPositionValue();
 			// let controller = entityRef.GetComponent<Controller>();
 			if (Hush.InputManager.IsKeyDown((EKeyCode)controller.up)) {
