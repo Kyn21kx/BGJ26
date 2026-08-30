@@ -9,13 +9,16 @@ enum EEnemyState : int32 {
 	FleeingFromPlayer,
 	AttackPreparing = 4,
 	AttackExecuting = 8,
-	IsAttackPhase = AttackPreparing | AttackExecuting
+	SearchingPath = 16,
+	TraversingFixedDir = 32,
+	IsAttackPhase = AttackPreparing | AttackExecuting,
+	InPathFindingPhase = SearchingPath | TraversingFixedDir,
 }
 
 [HushComponent, CRepr]
 struct Enemy // Serves as a tag and sensor data
 {
-	public Vector3 avoidanceDirection = .(); // This one will take priority if not zero
+	public Vector3 normalFaceOfHit = .(); // This one will take priority if not zero
 	public Vector3 targetDirection = .();
 	public Vector3 targetPos = .();
 	public EEnemyState state = EEnemyState.LookingForPlayer;
@@ -24,8 +27,9 @@ struct Enemy // Serves as a tag and sensor data
 	public float actionTimeRemaining = .();
 	public float attackCooldown = 0f;
 	public float lastAttackTime = 0f;
+	public float scanPathSpeed = 0f;
 	public this() {
-		this.avoidanceDirection = .();
+		this.normalFaceOfHit = .();
 		this.targetDirection = .();
 		this.targetPos = .();
 		this.state = .LookingForPlayer;
@@ -33,6 +37,7 @@ struct Enemy // Serves as a tag and sensor data
 		this.attackCooldown = 0f;
 		this.lastAttackTime = 0f;
 		this.coneAngle = 0f;
+		this.scanPathSpeed = 0f;
 		
 	}
 }

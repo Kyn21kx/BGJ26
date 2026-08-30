@@ -169,6 +169,33 @@ extension Vector3
 		return (float)System.Math.Acos(cos);
 	}
 
+
+	public float signed_angle_between(Vector3 vec, Vector3 normal, float epsilon = Constants.EPSILON, float zero_guard = 0)
+	{
+	    float product = this.length() * vec.length();
+	    if (product < epsilon){
+	        return zero_guard;
+	    }
+
+	    float cos = dot(vec) / product;
+	    if (cos > 1.0f){
+	        cos = 1.0f;
+	    }
+	    else if (cos < -1.0f){
+	        cos = -1.0f;
+	    }
+    
+	    // Get the unsigned angle magnitude
+	    float angle = (float)System.Math.Acos(cos);
+
+	    // Determine the sign using the cross product and the reference normal
+	    Vector3 cross = this.cross(vec); // Assumes you have a cross product method
+	    float sign = cross.dot(normal);
+
+	    // If the cross product points against the normal, the angle is negative
+	    return sign < 0 ? -angle : angle;
+	}
+
 	//NOTE(cris): Assumes normal is normalized
 	public Vector3 reflection_dir(Vector3 normal){
 		//    R = I  -  2           (I.N)        N

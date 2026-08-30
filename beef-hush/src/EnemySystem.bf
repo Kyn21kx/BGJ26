@@ -34,9 +34,12 @@ public class EnemySystem : GameSystem {
 
 		// Zero initialize
 		this.m_enemiesQuery.Each<Enemy>(scope (entityRef, enemy) => {
-			float cooldown = enemy.attackCooldown;
-			(*enemy) = .();
-			enemy.attackCooldown = cooldown;
+			enemy.lastAttackTime = 0f;
+			enemy.state = .LookingForPlayer;
+
+			enemy.targetDirection = .();
+			enemy.targetPos = .();
+			enemy.normalFaceOfHit = .();
 		});
 		this.m_ellapsed = 0f;
 	}
@@ -93,6 +96,26 @@ public class EnemySystem : GameSystem {
 		return euler;
 	}
 
+	private Vector3 GetNormalFromAABB(in AABB aabb, Vector3 hitPos) {
+		Vector3 normal = .();
+		Vector3 center = aabb.pos;
+		Vector3 halfSize = aabb.size * 0.5f;
+
+		// Determine which face was hit by comparing hitPoint to the AABB bounds
+		Vector3 diff = hitPos - center;
+		float max = Math.Max(Math.Abs(diff.x), Math.Max(Math.Abs(diff.y), Math.Abs(diff.z)));
+		if (Math.Abs(diff.x) == max) {
+			normal = .(Math.Sign(diff.x), 0, 0);
+		}
+		else if (Math.Abs(diff.y) == max) {
+			normal = .(0, Math.Sign(diff.y), 0);
+		}
+		else if (Math.Abs(diff.z) == max) {
+			normal = .(0, 0, Math.Sign(diff.z));					
+		}
+		return normal;
+	}
+
 	private Vector3 GetAvoidanceDirection(Enemy* enemy, RigidBody* rig, RigidBody* wallRig, Vector3 hitPos, Vector3 directionTaking) {
 		Vector3 normal = .();
 		Vector3 center = wallRig.aabb.pos;
@@ -120,11 +143,10 @@ public class EnemySystem : GameSystem {
 
 	private void TriggerAttackIfInRange(float distanceToPlayerSqr, Enemy* enemy, RigidBody* rig, BeefHush.Entity* entity) {
 		float cdDiff = (this.m_ellapsed - enemy.lastAttackTime);
-		if (cdDiff < enemy.attackCooldown && distanceToPlayerSqr > ATTACK_DASH_DISTANCE) {
+		Console.WriteLine(scope $"Cooldown ellapsed : {cdDiff}");
+		if (cdDiff < enemy.attackCooldown || distanceToPlayerSqr > ATTACK_DASH_DISTANCE) {
 			return;
 		}
-
-		enemy.lastAttackTime = this.m_ellapsed;
 		
 		// Prepare attack
 		enemy.state = .AttackPreparing;
@@ -141,6 +163,7 @@ public class EnemySystem : GameSystem {
 		// Stay here if preparing, go and execute the attack if the enum says so
 		enemy.actionTimeRemaining -= delta;
 		if (enemy.state == .AttackPreparing) {
+			rig.SetVelocity(Constants.Vector3_ZERO);
 			if (enemy.actionTimeRemaining <= 0f) {
 				enemy.actionTimeRemaining = ATTACK_EXECUTE_TIME;
 				enemy.state = .AttackExecuting;
@@ -149,8 +172,6 @@ public class EnemySystem : GameSystem {
 		}
 
 		// Executing otherwise
-		enemy.actionTimeRemaining -= delta;
-
 		// Dash towards the player and check which one is the closest one
 		const float speed = ATTACK_DASH_DISTANCE / ATTACK_EXECUTE_TIME;
 		rig.SetVelocity(enemy.targetDirection * speed);
@@ -184,9 +205,79 @@ public class EnemySystem : GameSystem {
 		if (enemy.actionTimeRemaining <= 0f) {
 			enemy.state = .LookingForPlayer;
 		}
+
+
+		enemy.lastAttackTime = this.m_ellapsed;
+		
 	}
 
-	private void EnemySensorSystem(BeefHush.Entity* entityRef, Enemy* enemy, RigidBody* rig, LocalTransform* xform) {
+	private void LookForAvailableDirection(float delta, BeefHush.Entity* entityRef, Enemy* enemy, LocalTransform* xform, RigidBody* rig) {
+		if (enemy.state == .SearchingPath) {
+			rig.SetVelocity(Constants.Vector3_ZERO);
+			// Rotate + Raycast until we find a non obstructed direction
+			Vector3 currRotation = xform.GetEulerAngles();
+
+			currRotation.y += ((delta * enemy.scanPathSpeed) * Constants.DEG2RAD) * Math.Sign(enemy.normalFaceOfHit.x);
+
+			xform.SetEulerAngles(&currRotation);
+		}
+		else {
+			rig.SetVelocity(enemy.targetDirection);
+		}
+
+		// Raycast here
+		Ray ray = .(rig.aabb.pos, xform.Forward().normalized());
+		ray.origin.y = 0f;
+		Ray rightRay = .(rig.aabb.pos, xform.Right().normalized() * Math.Sign(enemy.normalFaceOfHit.x));
+		rightRay.origin.y = 0f;
+
+		// Go through the spatial grid, if even one wall is in our path
+		// cancel
+		const int32 queryDepth = 2;
+		BeefHush.Entity lastNeighborFound = .();
+		bool noObstacles = true;
+		bool isAvailablePath = PhysicsSystem.s_SpatialGrid.UntilNeighborAt(rig.aabb.pos, queryDepth, entityRef.Id, scope [&](neighbor) => {
+			lastNeighborFound = .(Scene.EntityFromIdUnchecked(this.m_scene, neighbor));
+			let neighborColl = lastNeighborFound.GetComponent<Collider>(EntityRegistry.s_Collider);
+			EEntityTag neighborTag = (EEntityTag)neighborColl.identifierTag;
+
+			if (neighborTag != .Wall) {
+				return false;
+			}
+			noObstacles = false;
+			// Raycast
+			RigidBody* wallRig = lastNeighborFound.GetComponent<RigidBody>(EntityRegistry.s_Rig);
+			float distance;
+			if (enemy.state == .SearchingPath) {
+				if (!ray.Intersects(wallRig.aabb, out distance) || distance > 1f) {
+					return true;
+				}
+			}
+			else if (enemy.state == .TraversingFixedDir) {
+				float angle = rig.aabb.pos.angle_between(enemy.targetPos) * Constants.RAD2DEG;
+				bool rightClear = !rightRay.Intersects(wallRig.aabb, out distance) || distance > 1f;
+				Console.WriteLine(scope $"Right clear: {rightClear}, dis: {distance}. Angle to wall: {angle}, normal: {enemy.normalFaceOfHit}");
+				// bool leftClear = !leftRay.Intersects(wallRig.aabb, out distance) || distance > 1f;
+				if (rightClear && angle > 5f) {
+					return true;
+				}
+				
+			}
+			return false;
+		});
+
+		if (enemy.state == .SearchingPath && (isAvailablePath || noObstacles)) {
+			enemy.targetDirection = ray.direction;
+			enemy.state = .TraversingFixedDir;
+		}
+		else if (enemy.state == .TraversingFixedDir && (isAvailablePath || noObstacles)) {
+			enemy.targetDirection = rightRay.direction;
+			enemy.state = .LookingForPlayer;
+		}
+		
+	}
+
+	private void EnemySensorSystem(float delta, BeefHush.Entity* entityRef, Enemy* enemy, RigidBody* rig, LocalTransform* xform) {
 		// Query the spatial grid with a higher depth to check if the player is here
 		if (enemy.targetDirection == Constants.Vector3_ZERO) {
 			enemy.targetDirection = Constants.Vector3_RIGHT;
@@ -195,14 +286,9 @@ public class EnemySystem : GameSystem {
 		const int32 queryDepth = 2;
 		ESensorResult sensorRes = .NoObstacleNoPlayer;
 		BeefHush.Entity lastNeighborFound = .();
+
 		PhysicsSystem.s_SpatialGrid.UntilNeighborAt(rig.aabb.pos, queryDepth, entityRef.Id, scope [&](neighbor) => {
 			lastNeighborFound = .(Scene.EntityFromIdUnchecked(this.m_scene, neighbor));
-			// char8[64] buffer = .();
-			// lastNeighborFound.InnerEntity().QueryName(&(buffer[0]), (uint64)64);
-			// Console.WriteLine(scope $"Spatial grid found {StringView(&(buffer[0]))}");
-			// On a single pass we can identify if we found the player, or if we're gonna collide with a wall
-
-			// If it's the player
 
 			let neighborColl = lastNeighborFound.GetComponent<Collider>(EntityRegistry.s_Collider);
 			EEntityTag neighborTag = (EEntityTag)neighborColl.identifierTag;
@@ -217,8 +303,6 @@ public class EnemySystem : GameSystem {
 				enemy.targetPos = playerPos;
 				enemy.state = EEnemyState.HeadingToPlayer;
 
-				// Reset avoidance
-				enemy.avoidanceDirection = .();
 				this.TriggerAttackIfInRange(playerDis, enemy, rig, entityRef);
 				return false;
 			}
@@ -226,24 +310,19 @@ public class EnemySystem : GameSystem {
 				// RigidBody* wallRig = lastNeighborFound.GetComponent<RigidBody>(EntityRegistry.s_Rig);
 				// Do a raycast check from our position to the direction we want to move towards
 				RigidBody* wallRig = lastNeighborFound.GetComponent<RigidBody>(EntityRegistry.s_Rig);
-				Vector3 directionTaking = enemy.avoidanceDirection != Constants.Vector3_ZERO ? enemy.avoidanceDirection : enemy.targetDirection;
+				Vector3 directionTaking = rig.vel;
 				Ray ray = .(rig.aabb.pos, directionTaking);
 				ray.origin.y = 0;
 				float distance;
-				if (!ray.Intersects(wallRig.aabb, out distance) || distance > 0.5f) {
+				if (!ray.Intersects(wallRig.aabb, out distance) || distance > 1f) {
 					return false;
 				}
 
-				Vector3 hitPos = ray.origin + (ray.direction * distance);
-				// Get the direction we need to go to to avoid it
+				enemy.targetPos = ray.origin + (ray.direction * distance);
+				enemy.normalFaceOfHit = GetNormalFromAABB(wallRig.aabb, enemy.targetPos);
 
-				// targetDirection of the enemy could be treated as forward(?
-				Vector3 actualDirectionToPlayer = (enemy.targetPos - rig.aabb.pos).normalized();
-				float angle = enemy.targetDirection.angle_between(actualDirectionToPlayer);
-				if (angle > (enemy.coneAngle * Constants.DEG2RAD) * 0.5f) {
-					return false;
-				}
-				enemy.avoidanceDirection = GetAvoidanceDirection(enemy, rig, wallRig, hitPos, directionTaking);
+				enemy.state = .SearchingPath;
+
 				return true;
 			}
 			return false;
@@ -260,26 +339,25 @@ public class EnemySystem : GameSystem {
 
 		this.m_enemiesQuery.Each<Enemy, RigidBody, LocalTransform>(scope (entityRef, enemy, rig, xform) => {
 			// Evaluate the State Machine here
+			Console.WriteLine(scope $"State: {enemy.state}");
+
+			if ((enemy.state & .InPathFindingPhase) != 0) {
+				LookForAvailableDirection(delta, &entityRef, enemy, xform, rig);
+				return;
+			}
+
 			if ((enemy.state & .IsAttackPhase) != 0) {
 				this.HandleAttackStates(&entityRef, enemy, rig, delta);
 				return;
 			}
 
-			if (enemy.avoidanceDirection != Constants.Vector3_ZERO) {
-				rig.SetVelocity(enemy.avoidanceDirection);
-				Vector3 rotationTarget = LookRotationEuler((rig.aabb.pos + enemy.avoidanceDirection), rig.aabb.pos, Constants.Vector3_UP);
-				xform.SetEulerAngles(&rotationTarget);
-			}
-			else {
-				rig.SetVelocity(enemy.targetDirection);
-				Vector3 rotationTarget = LookRotationEuler((rig.aabb.pos + enemy.targetDirection), rig.aabb.pos, Constants.Vector3_UP);
-				Vector3 currRot = xform.GetEulerAngles();
+			rig.SetVelocity(enemy.targetDirection);
+			Vector3 rotationTarget = LookRotationEuler((rig.aabb.pos + enemy.targetDirection), rig.aabb.pos, Constants.Vector3_UP);
+			// Vector3 currRot = xform.GetEulerAngles();
 
-				rotationTarget = currRot.Lerp(rotationTarget, delta * 2f);
-				xform.SetEulerAngles(&rotationTarget);
-			}
+			xform.SetEulerAngles(&rotationTarget);
 
-			EnemySensorSystem(&entityRef, enemy, rig, xform); // This is a long ass function
+			EnemySensorSystem(delta, &entityRef, enemy, rig, xform); // This is a long ass function
 		});
 		
 	}
