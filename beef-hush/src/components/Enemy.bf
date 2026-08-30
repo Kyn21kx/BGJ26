@@ -20,14 +20,18 @@ struct Enemy // Serves as a tag and sensor data
 	public Vector3 targetPos = .();
 	public EEnemyState state = EEnemyState.LookingForPlayer;
 	public float coneAngle = 0f;
+	// TODO: Separate into an attack component
 	public float actionTimeRemaining = .();
-
+	public float attackCooldown = 0f;
+	public float lastAttackTime = 0f;
 	public this() {
 		this.avoidanceDirection = .();
 		this.targetDirection = .();
 		this.targetPos = .();
-		this.state = .();
+		this.state = .LookingForPlayer;
 		this.actionTimeRemaining = .();
+		this.attackCooldown = 0f;
+		this.lastAttackTime = 0f;
 		this.coneAngle = 0f;
 		
 	}

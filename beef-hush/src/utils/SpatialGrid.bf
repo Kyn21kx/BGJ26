@@ -7,7 +7,7 @@ using Hush;
 /// @brief Simple unbounded spatial grid implementation, this one unfortunately does allocate on the heap
 struct SpatialGrid {
 
-	private const float CELL_SIZE = 1f; // TODO: benchmark
+	private const float CELL_SIZE = 2f; // TODO: benchmark
 	private const float INV_CELL_SIZE = 1.0f / CELL_SIZE;
 	private Dictionary<uint64, List<uint64>> m_entitiesAtCell;
 

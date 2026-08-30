@@ -1,3 +1,5 @@
+namespace BeefHush;
+
 using Hush;
 using System;
 
