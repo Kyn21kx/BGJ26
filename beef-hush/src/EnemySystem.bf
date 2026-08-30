@@ -141,11 +141,11 @@ public class EnemySystem : GameSystem {
 	}
 
 
-	private void TriggerAttackIfInRange(float distanceToPlayerSqr, Enemy* enemy, RigidBody* rig, BeefHush.Entity* entity) {
+	private bool TriggerAttackIfInRange(float distanceToPlayerSqr, Enemy* enemy, RigidBody* rig, BeefHush.Entity* entity) {
 		float cdDiff = (this.m_ellapsed - enemy.lastAttackTime);
 		Console.WriteLine(scope $"Cooldown ellapsed : {cdDiff}");
 		if (cdDiff < enemy.attackCooldown || distanceToPlayerSqr > ATTACK_DASH_DISTANCE) {
-			return;
+			return false;
 		}
 		
 		// Prepare attack
@@ -157,6 +157,7 @@ public class EnemySystem : GameSystem {
 		var animComp = entity.AddComponent<ShakingAnimation>();
 		animComp.duration = ATTACK_PREPARE_TIME;
 		animComp.speed = 1f;
+		return true;
 	}
 
 	private void HandleAttackStates(BeefHush.Entity* entity, Enemy* enemy, RigidBody* rig, float delta) {
@@ -212,14 +213,52 @@ public class EnemySystem : GameSystem {
 	}
 
 	private void LookForAvailableDirection(float delta, BeefHush.Entity* entityRef, Enemy* enemy, LocalTransform* xform, RigidBody* rig) {
+		// Early out: if the player is visible with no wall in the way, abandon pathfinding
+		const int32 earlyOutDepth = 2;
+		bool playerVisible = false;
+		Vector3 visiblePlayerPos = .();
+		BeefHush.Entity scratchEnt = .();
+		PhysicsSystem.s_SpatialGrid.UntilNeighborAt(rig.aabb.pos, earlyOutDepth, entityRef.Id, scope [&](neighbor) => {
+			scratchEnt = .(Scene.EntityFromIdUnchecked(this.m_scene, neighbor));
+			let coll = scratchEnt.GetComponent<Collider>(EntityRegistry.s_Collider);
+			if ((EEntityTag)coll.identifierTag != .Player) return false;
+			visiblePlayerPos = scratchEnt.GetComponent<RigidBody>(EntityRegistry.s_Rig).aabb.pos;
+			playerVisible = true;
+			return true;
+		});
+		if (playerVisible) {
+			Vector3 toPlayer = (visiblePlayerPos - rig.aabb.pos).normalized();
+			Ray playerRay = .(rig.aabb.pos, toPlayer);
+			playerRay.origin.y = 0f;
+			bool blocked = false;
+			PhysicsSystem.s_SpatialGrid.UntilNeighborAt(rig.aabb.pos, earlyOutDepth, entityRef.Id, scope [&](neighbor) => {
+				scratchEnt = .(Scene.EntityFromIdUnchecked(this.m_scene, neighbor));
+				let coll = scratchEnt.GetComponent<Collider>(EntityRegistry.s_Collider);
+				if ((EEntityTag)coll.identifierTag != .Wall) return false;
+				float dist;
+				if (playerRay.Intersects(scratchEnt.GetComponent<RigidBody>(EntityRegistry.s_Rig).aabb, out dist)) { blocked = true; return true; }
+				return false;
+			});
+			if (!blocked) {
+				enemy.targetDirection = toPlayer;
+				enemy.targetPos = visiblePlayerPos;
+				enemy.state = .HeadingToPlayer;
+				rig.SetVelocity(toPlayer);
+				return;
+			}
+		}
+
 		if (enemy.state == .SearchingPath) {
 			rig.SetVelocity(Constants.Vector3_ZERO);
-			// Rotate + Raycast until we find a non obstructed direction
-			Vector3 currRotation = xform.GetEulerAngles();
-
-			currRotation.y += ((delta * enemy.scanPathSpeed) * Constants.DEG2RAD) * Math.Sign(enemy.normalFaceOfHit.x);
-
-			xform.SetEulerAngles(&currRotation);
+			// Rotate forward vector in XZ plane to avoid euler angle ambiguity
+			float rotSign = enemy.normalFaceOfHit.x != 0f ? Math.Sign(enemy.normalFaceOfHit.x) : Math.Sign(enemy.normalFaceOfHit.z);
+			if (rotSign == 0f) rotSign = 1f;
+			float rotDelta = (delta * enemy.scanPathSpeed) * Constants.DEG2RAD * rotSign;
+			Vector3 currFwd = xform.Forward().normalized();
+			float cosA = Math.Cos(rotDelta), sinA = Math.Sin(rotDelta);
+			Vector3 newFwd = .(currFwd.x * cosA - currFwd.z * sinA, 0f, currFwd.x * sinA + currFwd.z * cosA);
+			Vector3 newRot = LookRotationEuler(rig.aabb.pos + newFwd, rig.aabb.pos, Constants.Vector3_UP);
+			xform.SetEulerAngles(&newRot);
 		}
 		else {
 			rig.SetVelocity(enemy.targetDirection);
@@ -303,8 +342,7 @@ public class EnemySystem : GameSystem {
 				enemy.targetPos = playerPos;
 				enemy.state = EEnemyState.HeadingToPlayer;
 
-				this.TriggerAttackIfInRange(playerDis, enemy, rig, entityRef);
-				return false;
+				return this.TriggerAttackIfInRange(playerDis, enemy, rig, entityRef);
 			}
 			else if (neighborTag == .Wall) {
 				// RigidBody* wallRig = lastNeighborFound.GetComponent<RigidBody>(EntityRegistry.s_Rig);
