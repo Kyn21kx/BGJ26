@@ -111,7 +111,7 @@ public class PhysicsSystem : GameSystem{
 	}
 
 	public void OnShutdown(){
-		//NOTE(cris):Aqui el sistema de fisicas deberia hacer algo?
+
 		Console.WriteLine("Physics system was shutdown!");
 		s_spatialGrid.Dispose();
 	}

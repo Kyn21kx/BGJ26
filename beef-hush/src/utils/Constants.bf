@@ -30,5 +30,6 @@ public enum EEntityTag : int32 {
 	Player,
 	Enemy,
 	Wall,
-	Spell
+	Spell,
+	PickUp
 }
