@@ -54,6 +54,7 @@ public class DropAndPickupSystem : GameSystem
 
 	public uint32 GetRandomPickupIndex()
 	{
+		//Currently randomizes everything from AvaiblePickups, this might be desirable to change
 		return (uint32)m_random.Next(0, MAX_PICKUP_COUNT);
 	}
 
@@ -97,10 +98,14 @@ public class DropAndPickupSystem : GameSystem
 		collider.identifierTag = (int32)EEntityTag.PickUp;
 
 		RigidBody* rig = pickupEnt.AddComponent<RigidBody>();
-		//*rig = .();
+		*rig = .();
 		rig.aabb.pos = position;
 
 		OnDropEvent(.(sourceId, position, index, dropChance));
+	}
+
+	public void RollChance(){
+		//TODO: Right now CanDrop.dropChance does nothing
 	}
 
 	public void InitializePickupsMesh(){
@@ -134,6 +139,8 @@ public class DropAndPickupSystem : GameSystem
 		builder.With<CanDrop>();
 		builder.With<RigidBody>();
 		this.m_droppersQuery = builder.Build();
+		//TODO: It crashes if it gets initialized more than once, which is in the PickUpTest.hscene
+
 	//	this.InitializePickupsMesh();
 
 		PhysicsSystem.OnCollisionEvent.Add(new (a, b) => {
@@ -177,9 +184,10 @@ public class DropAndPickupSystem : GameSystem
 
 	public void OnUpdate(float delta)
 	{
+		//added for testing purposes
 		this.timer += delta;
 
-		if(this.timer > 15f){
+		if(this.timer > 8f){
 			this.timer = 0f;
 			
 			this.m_droppersQuery.Each<CanDrop, RigidBody>(scope (entityRef, canDrop, rig) => {
