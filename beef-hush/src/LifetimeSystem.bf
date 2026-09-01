@@ -2,6 +2,7 @@ namespace BeefHush;
 
 using Hush;
 using System;
+using System.Collections;
 
 [RegisterSystem]
 class LifetimeSystem : GameSystem
@@ -19,6 +20,7 @@ class LifetimeSystem : GameSystem
 
 		builder = .();
 		builder.With<Lifetime>();
+		builder.With<LocalTransform>();
 		builder.With<ParticleTag>();
 		this.m_particleQuery = builder.Build();
 	}
@@ -30,13 +32,21 @@ class LifetimeSystem : GameSystem
 
 	public void OnUpdate(float delta)
 	{
+		// Collect expired entities first: destroying inside the Each swap-removes
+		// rows from the table mid-iteration and shifts the remaining rows.
+		List<Hush.Entity> expiredEntities = scope List<Hush.Entity>();
+
 		this.m_lifetimeObjects.Each<Lifetime>(scope (entityRef, lifetime) => {
 			lifetime.remaining -= delta;
 			if (lifetime.remaining <= 0f) {
 				var entityRef; // UX: Stupid copy
-				Scene.DestroyEntity(this.m_scene, entityRef.InnerEntity());
+				expiredEntities.Add(*entityRef.InnerEntity());
 			}
 		});
+
+		for (var entity in expiredEntities) {
+			Scene.DestroyEntity(this.m_scene, &entity);
+		}
 
 		this.m_particleQuery.Each<Lifetime, LocalTransform>(scope (entityRef, lifetime, xform) => {
 			if (lifetime.initialLifetime > 0f) {
