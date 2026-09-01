@@ -9,19 +9,27 @@ public struct Transform {
 	public char8[1] m_member3;
 
 	public Vector3 Right() {
-		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__Right(&this);
+		Vector3 result = .();
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__RightOut(&this, &result);
+		return result;
 	}
 
 	public Vector3 Up() {
-		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__Up(&this);
+		Vector3 result = .();
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__UpOut(&this, &result);
+		return result;
 	}
 
 	public Vector3 Forward() {
-		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__Forward(&this);
+		Vector3 result = .();
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__ForwardOut(&this, &result);
+		return result;
 	}
 
 	public Vector3 GetEulerAngles() {
-		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetEulerAngles(&this);
+		Vector3 result = .();
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetEulerAnglesOut(&this, &result);
+		return result;
 	}
 
 	public void SetEulerAngles(Vector3* euler) {
@@ -32,8 +40,16 @@ public struct Transform {
 		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__SetScale(&this, scale);
 	}
 
+	public Vector3 GetScale() {
+		Vector3 result = .();
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetScaleOut(&this, &result);
+		return result;
+	}
+
 	public Vector3 GetPositionValue() {
-		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetPositionValue(&this);
+		Vector3 result = .();
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetPositionValueOut(&this, &result);
+		return result;
 	}
 
 	public Vector3* GetPosition() {
