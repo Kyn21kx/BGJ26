@@ -293,6 +293,15 @@ public class EnemySystem : GameSystem {
 				}
 			}
 			else if (enemy.state == .TraversingFixedDir) {
+				// Check if a new wall is blocking our forward travel direction
+				Ray fwdRay = .(rig.aabb.pos, enemy.targetDirection);
+				fwdRay.origin.y = 0f;
+				float fwdDist;
+				if (fwdRay.Intersects(wallRig.aabb, out fwdDist) && fwdDist <= 1f) {
+					enemy.normalFaceOfHit = GetNormalFromAABB(wallRig.aabb, fwdRay.origin + fwdRay.direction * fwdDist);
+					enemy.state = .SearchingPath;
+					return true;
+				}
 				float angle = rig.aabb.pos.angle_between(enemy.targetPos) * Constants.RAD2DEG;
 				bool rightClear = !rightRay.Intersects(wallRig.aabb, out distance) || distance > 1f;
 				Console.WriteLine(scope $"Right clear: {rightClear}, dis: {distance}. Angle to wall: {angle}, normal: {enemy.normalFaceOfHit}");
@@ -300,7 +309,6 @@ public class EnemySystem : GameSystem {
 				if (rightClear && angle > 5f) {
 					return true;
 				}
-				
 			}
 			return false;
 		});
