@@ -90,6 +90,13 @@ class ParticleSystem : GameSystem
 				return;
 			}
 
+			// Validate the asset id where the request is built: only well-formed
+			// requests enter the list, so SpawnParticle can index AvailableParticles
+			// without a bounds guard.
+			if (emitter.particleAssetId >= MAX_PARTICLES_COUNT){
+				return;
+			}
+
 			emitter.lastEmissionTime = this.m_totalTime;
 			emitter.currentParticleCount = (int32)(aliveParticles + (uint64)requests.Count);
 
@@ -108,10 +115,8 @@ class ParticleSystem : GameSystem
 	}
 
 	public void SpawnParticle(EmissionRequest request){
-		if (request.assetId >= MAX_PARTICLES_COUNT){
-			return;
-		}
-
+		// Callers are expected to build requests from validated emitter data
+		// (see OnUpdate); the assetId guard lives there.
 		let handle = this.m_renderingSystem.GetComponent<RenderingSystemAPI>();
 		uint64 rootEntId = handle.instantiateMeshEntities(&(AvailableParticles[request.assetId][0]), handle.instance);
 
