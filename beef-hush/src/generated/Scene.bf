@@ -3,7 +3,9 @@ using System;
 public static class Scene {
 
 	public static RawQuery CreateRawQuery(void* self, uint64* componentsData, uint64 componentsSize, RawQuery.ECacheMode cacheMode) {
-		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__CreateRawQuery(self, componentsData, componentsSize, cacheMode);
+		RawQuery result = .();
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__CreateRawQueryOut(self, componentsData, componentsSize, cacheMode, &result);
+		return result;
 	}
 
 	public static uint64 Lookup(void* self, char8* tagData, uint64 tagSize) {
@@ -19,7 +21,9 @@ public static class Scene {
 	}
 
 	public static Entity EntityFromIdUnchecked(void* self, uint64 id) {
-		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__EntityFromIdUnchecked(self, id);
+		Entity result = .();
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__EntityFromIdUncheckedOut(self, id, &result);
+		return result;
 	}
 
 	public static void DestroyEntity(void* self, Entity* entity) {
@@ -31,15 +35,21 @@ public static class Scene {
 	}
 
 	public static Entity CreateEntityWithKey(void* self, char8* keyData, uint64 keySize) {
-		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__CreateEntityWithKey(self, keyData, keySize);
+		Entity result = .();
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__CreateEntityWithKeyOut(self, keyData, keySize, &result);
+		return result;
 	}
 
 	public static Entity CreateEntityWithName(void* self, char8* nameData, uint64 nameSize) {
-		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__CreateEntityWithName(self, nameData, nameSize);
+		Entity result = .();
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__CreateEntityWithNameOut(self, nameData, nameSize, &result);
+		return result;
 	}
 
 	public static Entity CreateEntity(void* self) {
-		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__CreateEntity(self);
+		Entity result = .();
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__CreateEntityOut(self, &result);
+		return result;
 	}
 
 	public static void RemoveSystem(void* self, char8* nameData, uint64 nameSize) {

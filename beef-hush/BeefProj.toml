@@ -1,5 +1,5 @@
 FileVersion = 1
-Dependencies = {corlib = "*", corlib = "*", corlib = "*", corlib = "*"}
+Dependencies = { corlib = "*" }
 
 [Project]
 Name = "beef-hush"
@@ -14,3 +14,15 @@ RuntimeChecks = false
 [Configs.Debug.Win64]
 BuildKind = "DynamicLib"
 BeefLibType = "DynamicDebug"
+
+[Configs.Debug.macOS]
+BuildKind = "DynamicLib"
+BeefLibType = "DynamicDebug"
+# Plugin-style dylib: engine symbols are resolved at load time from the host
+# editor process through the function-pointer table, so allow undefined refs.
+OtherLinkFlags = "$(LinkFlags) -Wl,-undefined,dynamic_lookup"
+
+[Configs.Release.macOS]
+BuildKind = "DynamicLib"
+OptimizationLevel = "O2"
+OtherLinkFlags = "$(LinkFlags) -Wl,-undefined,dynamic_lookup"

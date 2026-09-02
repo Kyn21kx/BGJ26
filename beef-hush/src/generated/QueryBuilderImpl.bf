@@ -3,7 +3,9 @@ using System;
 public static class QueryBuilderImpl {
 
 		public static RawQuery InitQuery(void* scene, uint8* queryDesc) {
-			return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__impl__QueryBuilderImpl__InitQuery(scene, queryDesc);
+			RawQuery result = .();
+			BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__impl__QueryBuilderImpl__InitQueryOut(scene, queryDesc, &result);
+			return result;
 		}
 
 		public static void WithOptional(uint8* queryDesc, uint8* termCountRef, uint64 term) {

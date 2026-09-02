@@ -80,6 +80,17 @@ public struct Query {
 
 	private RawQuery m_innerQuery;
 
+	// Counts the entities currently matching this query without invoking any
+	// callback. Safe to call before mutating the world.
+	public uint64 Count() {
+		let iterator = this.m_innerQuery.GetIterator();
+		uint64 count = 0;
+		while (iterator.Next()) {
+			count += iterator.Size();
+		}
+		return count;
+	}
+
 	public void EachEntity(delegate void(BeefHush.Entity entityRef) callable) {
 		let iterator = this.m_innerQuery.GetIterator();
 		void* engine = EngineDependencies.Instance.Engine;

@@ -2,18 +2,29 @@ namespace BeefHush;
 
 using Hush;
 using System;
+using System.Collections;
 
 [RegisterSystem]
 class ParticleSystem : GameSystem
 {
 	private const uint8 MAX_PARTICLES_COUNT = 2;
-	private const StringView [MAX_PARTICLES_COUNT] AvailableParticles = .("Particle1","Particle2");
+	private const StringView [MAX_PARTICLES_COUNT] AvailableParticles = .("res://Box.glb","res://decahedron.glb");
 	private Query m_emitterQuery;
+	private Query m_particleTagQuery;
 	private float m_totalTime;
 	private	void* m_scene;
 	private BeefHush.Entity m_renderingSystem;
 	private BeefHush.Entity [MAX_PARTICLES_COUNT] m_particlesMeshRef;
 	private Random m_random;
+
+	struct EmissionRequest
+	{
+		public Vector3 basePos;
+		public float minScale;
+		public float maxScale;
+		public uint64 assetId;
+		public float particleLifeTime;
+	}
 
 	public void Init(){
 
@@ -21,7 +32,12 @@ class ParticleSystem : GameSystem
 
 		QueryBuilder builder = .();
 		builder.With<ParticleEmitter>();
+		builder.With<LocalTransform>();
 		this.m_emitterQuery = builder.Build();
+
+		builder = .();
+		builder.With<ParticleTag>();
+		this.m_particleTagQuery = builder.Build();
 		this.m_totalTime = 0.0f;
 		this.m_scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
 
@@ -54,36 +70,69 @@ class ParticleSystem : GameSystem
 	public void OnUpdate(float delta){
 		this.m_totalTime += delta;
 
+		// The emitter cap must reflect particles that already died: LifetimeSystem
+		// destroys expired particles without notifying emitters, so counting the
+		// alive ParticleTags every frame is the only source of truth.
+		uint64 aliveParticles = this.m_particleTagQuery.Count();
+
+		// Collect emission requests while iterating; spawning inside the Each would
+		// create entities and move flecs tables, leaving the next row's component
+		// pointers dangling.
+		List<EmissionRequest> requests = scope List<EmissionRequest>();
+
 		this.m_emitterQuery.Each<ParticleEmitter, LocalTransform>(scope (entityRef, emitter, emitterxForm) => {
 
 			if (this.m_totalTime - emitter.lastEmissionTime < emitter.emitRate){
 				return;
 			}
 
-			if (emitter.currentParticleCount >= emitter.maxParticles){
+			if (aliveParticles + (uint64)requests.Count >= (uint64)emitter.maxParticles){
+				return;
+			}
+
+			// Validate the asset id where the request is built: only well-formed
+			// requests enter the list, so SpawnParticle can index AvailableParticles
+			// without a bounds guard.
+			if (emitter.particleAssetId >= MAX_PARTICLES_COUNT){
 				return;
 			}
 
 			emitter.lastEmissionTime = this.m_totalTime;
-			emitter.currentParticleCount++;
+			emitter.currentParticleCount = (int32)(aliveParticles + (uint64)requests.Count);
 
-			let handle = this.m_renderingSystem.GetComponent<RenderingSystemAPI>();
-			uint64 rootEntId = handle.instantiateMeshEntities(&(AvailableParticles[emitter.particleAssetId][0]), handle.instance);
-
-			BeefHush.Entity particle = .(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
-			var lifeTime = particle.AddComponent<Lifetime>();
-			lifeTime.remaining = emitter.particleLifeTime;
-			lifeTime.initialLifetime = emitter.particleLifeTime;
-
-			particle.AddComponent<ParticleTag>();
-
-			var localxForm = particle.GetComponent<LocalTransform>();
-			float scale = RandomizeScale(emitter.minScale, emitter.maxScale);
-			localxForm.SetScale(Constants.Vector3_ONE * scale);
-
-			Vector3 pos = RandomizePosition(*emitterxForm.GetPosition());
-			localxForm.SetPosition(pos);
+			EmissionRequest request = .();
+			request.basePos = emitterxForm.GetPositionValue();
+			request.minScale = emitter.minScale;
+			request.maxScale = emitter.maxScale;
+			request.assetId = emitter.particleAssetId;
+			request.particleLifeTime = emitter.particleLifeTime;
+			requests.Add(request);
 		});
+
+		for (let request in requests){
+			this.SpawnParticle(request);
+		}
+	}
+
+	public void SpawnParticle(EmissionRequest request){
+		// Callers are expected to build requests from validated emitter data
+		// (see OnUpdate); the assetId guard lives there.
+		let handle = this.m_renderingSystem.GetComponent<RenderingSystemAPI>();
+		uint64 rootEntId = handle.instantiateMeshEntities(&(AvailableParticles[request.assetId][0]), handle.instance);
+
+		BeefHush.Entity particle = .(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
+		var lifeTime = particle.AddComponent<Lifetime>();
+		lifeTime.remaining = request.particleLifeTime;
+		lifeTime.initialLifetime = request.particleLifeTime;
+
+		particle.AddComponent<ParticleTag>();
+
+		var localxForm = particle.GetComponent<LocalTransform>();
+		float scale = RandomizeScale(request.minScale, request.maxScale);
+		localxForm.SetScale(Constants.Vector3_ONE * scale);
+
+		Vector3 pos = RandomizePosition(request.basePos);
+		localxForm.SetPosition(pos);
 	}
 
 	public float RandomizeScale(float min, float max){
