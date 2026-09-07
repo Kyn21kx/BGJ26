@@ -2,6 +2,7 @@ namespace BeefHush;
 
 using Hush;
 using System;
+using System.Collections;
 
 [RegisterSystem]
 class SpellSystem : GameSystem
@@ -12,15 +13,19 @@ class SpellSystem : GameSystem
 	private void* m_scene;
 	private BeefHush.Entity m_renderingSystem;
 	private BeefHush.Entity m_bulletMeshRef;
+	private BeefHush.Entity m_mainCamEntity;
+
+	private List<uint64> m_entitiesToDelete;
 
 	public void Init()
 	{
+		this.m_entitiesToDelete = new .(64);
 		this.m_totalTime = 0f;
 		QueryBuilder builder = .();
 		builder.With<Spell>();
 		builder.With<Controller>();
 		builder.With<ManaStat>();
-		builder.With<WorldTransform>();
+		builder.With<RigidBody>();
 		this.m_fireSpellsQuery = builder.Build();
 		this.m_scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
 		// Make sure we properly initialize this
@@ -32,7 +37,38 @@ class SpellSystem : GameSystem
 		builder.With<ManaStat>();
 		this.m_manaQuery = builder.Build();
 		this.InitializeMeshes();
+
+		builder = .();
+		builder.With<Camera>();
+
+		Query mainCamQ = builder.Build();
+		mainCamQ.EachEntity(scope (entityRef) => {
+		   this.m_mainCamEntity = entityRef;
+		});
+		PhysicsSystem.OnCollisionEvent.Add(new (a, b) => {
+			ColliderArgs* spellColl = &b;
+			ColliderArgs* otherColl = &a;
+			if (a.collider.identifierTag == (int32)EEntityTag.Spell) {
+				spellColl = &a;
+				otherColl = &b;
+			}
+			else if (b.collider.identifierTag != (int32)EEntityTag.Spell) {
+				// Not a spell collision
+				return;
+			}
+
+			// TODO: Make it a switch
+			// Now we can handle collisions with spells
+			if (otherColl.collider.identifierTag == (int32)EEntityTag.Enemy) {
+				// Damage the enemy
+			}
+			else if (otherColl.collider.identifierTag == (int32)EEntityTag.Wall) {
+				// Do whatever the spell needs to do on collision, then delete it
+				this.m_entitiesToDelete.Add(spellColl.id);
+			}
+		});
 	}
+
 
 	public void InitializeMeshes() {
 		const StringView renderSystemName = "RenderingSystem";
@@ -60,12 +96,32 @@ class SpellSystem : GameSystem
 		});
 	}
 
+	private Vector3 GetShootDirection(Vector3 currPos) {
+		// Get the mouse position in world space
+		Vector2 mouseScreenPos = InputManager.GetMousePosition();
+		Console.WriteLine(scope $"MousePos: {mouseScreenPos}");
+		// Find cam
+		Camera* cam = this.m_mainCamEntity.GetComponent<Camera>();
+		LocalTransform* xform = this.m_mainCamEntity.GetComponent<LocalTransform>();
+		float[16] mat = .();
+		xform.GetTransformationMatrixUnsafe(&(mat[0]), 16);
+		Vector3 direction = .();
+		Vector3 origin = cam.ScreenToWorldPosUnsafe(&(mat[0]), mouseScreenPos, &direction);
+		Console.WriteLine(scope $"Origin: {origin}, Dir: {direction}");
+		Vector3 worldPos = cam.ProjectPlanePosition(origin, direction, 0.0f);
+
+		Console.WriteLine(scope $"World pos: {worldPos}");
+
+		// Then we do dest - source
+		return (worldPos - currPos).normalized();
+	}
+
 	public void OnUpdate(float delta)
 	{
 		this.m_totalTime += delta;
 		this.ManaSubsystem(delta);
 		const Vector3 bulletScale = Constants.Vector3_ONE * 30.0f;
-		this.m_fireSpellsQuery.Each<Spell, Controller, ManaStat, WorldTransform>(scope (entityRef, spell, controller, manaStat, xform) => {
+		this.m_fireSpellsQuery.Each<Spell, Controller, ManaStat, RigidBody>(scope (entityRef, spell, controller, manaStat, spellRig) => {
 			float diff = this.m_totalTime - spell.lastFireTime;
 			// TODO: Make the component decide if this is a mouse button press or something else
 			bool mouseWasPressed = InputManager.GetMouseButtonPressed((EMouseButton)controller.fire);
@@ -81,12 +137,14 @@ class SpellSystem : GameSystem
 				uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
 
 				let bulletRootEntity = BeefHush.Entity(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
-				RigidBody* rig = bulletRootEntity.AddComponent<RigidBody>();
 				var bulletXform = bulletRootEntity.GetComponent<LocalTransform>();
 				bulletXform.SetScale(bulletScale);
+				let collider = bulletRootEntity.AddComponent<Collider>();
+				collider.identifierTag = (int32)EEntityTag.Spell;
+				RigidBody* rig = bulletRootEntity.AddComponent<RigidBody>();
 				*rig = .(); // Set default vals
-				rig.aabb.pos = xform.GetPositionValue(); // + The direction offset
-				Vector3 shootDir = .(1, 0, 0);
+				rig.aabb.pos = spellRig.aabb.pos; // + The direction offset
+				Vector3 shootDir = this.GetShootDirection(spellRig.aabb.pos);
 				rig.SetVelocity(shootDir * spell.projectileSpeed);
 				rig.SetAngularVelocity(shootDir * spell.projectileSpeed * 1.5f);
 				Lifetime* bulletLifetime = bulletRootEntity.AddComponent<Lifetime>();
@@ -114,6 +172,12 @@ class SpellSystem : GameSystem
 
 	public void OnPostRender()
 	{
+		// Workaround
+		for (uint64 ent in this.m_entitiesToDelete) {
+			var ent = Scene.EntityFromIdUnchecked(this.m_scene, ent);
+			Scene.DestroyEntity(this.m_scene, &ent);
+		}
 
+		this.m_entitiesToDelete.Clear();
 	}
 }

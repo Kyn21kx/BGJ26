@@ -6,7 +6,8 @@ public struct Entity { //: BindingCompletenessCheck<Hush.Entity, Entity> {
 	private Hush.Entity m_innerEntity;
 	// private bool _IsBindingValid = AllMethodsCovered();
 
-	public uint64 Id => this.m_innerEntity.GetId();
+	// Cached to not have to go through 4 frames of the stack
+	public uint64 Id { get; private set mut;}
 
 	public int32 ChildCount => this.m_innerEntity.GetChildCount();
 
@@ -14,10 +15,12 @@ public struct Entity { //: BindingCompletenessCheck<Hush.Entity, Entity> {
 
 	public this() {
 		this.m_innerEntity = .();
+		this.Id = 0;
 	}
 
 	public this(Hush.Entity innerEntity) {
 		this.m_innerEntity = innerEntity;
+		this.Id = this.m_innerEntity.GetId();
 	}
 
 	private uint64 RegisterCompIfNeeded<T>() {
@@ -62,9 +65,23 @@ public struct Entity { //: BindingCompletenessCheck<Hush.Entity, Entity> {
 		return (T*)this.m_innerEntity.AddComponentRaw(compId);
 	}
 
+	public bool HasComponent<T>() {
+		uint64 compId = this.RegisterCompIfNeeded<T>();
+		return this.m_innerEntity.HasComponentRaw(compId);
+	}
+
+	public bool HasComponent(uint64 knownId) {
+		return this.m_innerEntity.HasComponentRaw(knownId);
+	}
+
 	public T* GetComponent<T>() {
 		uint64 compId = this.RegisterCompIfNeeded<T>();
 		void* compMut = this.m_innerEntity.GetComponentRaw(compId);
+		return (T*)compMut;
+	}
+
+	public T* GetComponent<T>(uint64 knownId) {
+		void* compMut = this.m_innerEntity.GetComponentRaw(knownId);
 		return (T*)compMut;
 	}
 

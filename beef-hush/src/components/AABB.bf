@@ -16,7 +16,7 @@ public struct AABB
 	public Vector3 min => pos - size / 2;
 	public Vector3 max => pos + size / 2;
 
-	public bool intersects(AABB test){
+	public bool intersects(in AABB test){
 		return  (Math.Abs(pos.x - test.pos.x) <= (size.x + test.size.x) / 2) &&
 				(Math.Abs(pos.y - test.pos.y) <= (size.y + test.size.y) / 2) &&
 				(Math.Abs(pos.z - test.pos.z) <= (size.z + test.size.z) / 2);
@@ -28,5 +28,16 @@ public struct AABB
 		return  (test.x >= min.x) && (test.x <= max.x) &&
 				(test.y >= min.y) && (test.y <= max.y) &&
 				(test.z >= min.z) && (test.z <= max.z) ;
+	}
+
+	// Returns the minimum vector on the XZ plane to push 'this' out of 'other'
+	public Vector3 CalcMTV(AABB other) {
+		float ox = (size.x + other.size.x) * 0.5f - Math.Abs(pos.x - other.pos.x);
+		float oz = (size.z + other.size.z) * 0.5f - Math.Abs(pos.z - other.pos.z);
+
+		if (ox <= oz)
+			return .(Math.Sign(pos.x - other.pos.x) * ox, 0f, 0f);
+		else
+			return .(0f, 0f, Math.Sign(pos.z - other.pos.z) * oz);
 	}
 }

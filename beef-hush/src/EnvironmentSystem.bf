@@ -19,12 +19,14 @@ class EnvironmentSystem : GameSystem
 
 		let renderAPI = renderingSysEnt.GetComponent<RenderingSystemAPI>();
 
+		BeefHush.Entity parent = .(Scene.CreateEntityWithName(scene, "Floor", (uint64)("Floor").Length));
 		// Spawn a tile every X
 		for (int32 i = 0; i < WIDTH; i++) {
 			for (int32 j = 0; j < HEIGHT; j++) {
 				Vector3 position = .(i * CELL_SIZE, 0f, j * CELL_SIZE);
 				uint64 rootEntId = renderAPI.instantiateMeshEntities("res://StoneGround.glb", renderAPI.instance);
 				BeefHush.Entity rootEnt = .(Scene.EntityFromIdUnchecked(scene, rootEntId));
+				parent.AddChild(ref rootEnt);
 				var localXform = rootEnt.GetComponent<LocalTransform>();
 				localXform.SetPosition(position);
 				localXform.SetScale(SCALE);

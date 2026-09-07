@@ -30,10 +30,12 @@ extension Vector3
 		return .(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z);
 	}
 
+	[Commutable]
 	public static Vector3 operator/(Vector3 vec, float scale){
-	return .(vec.x / scale, vec.y / scale, vec.z / scale);
+		return .(vec.x / scale, vec.y / scale, vec.z / scale);
 	}
 
+	[Commutable]
 	public static Vector3 operator/(Vector3 dividend, Vector3 divisor){
 		if (System.Math.Abs(divisor.x) < Constants.EPSILON ||
 			System.Math.Abs(divisor.y) < Constants.EPSILON ||
@@ -46,6 +48,23 @@ extension Vector3
 			 	 dividend.y / divisor.y,
 				 dividend.z / divisor.z);
 	}
+
+	public static Vector3 Min (Vector3 a, Vector3 b) {
+		Vector3 res = .();
+		res.x = a.x < b.x ? a.x : b.x;
+		res.y = a.y < b.y ? a.y : b.y;
+		res.z = a.z < b.z ? a.z : b.z;
+		return res;
+	}
+
+	public static Vector3 Max (Vector3 a, Vector3 b) {
+		Vector3 res = .();
+		res.x = a.x > b.x ? a.x : b.x;
+		res.y = a.y > b.y ? a.y : b.y;
+		res.z = a.z > b.z ? a.z : b.z;
+		return res;
+	}
+
 
 	public  void operator+=(Vector3 rhs)mut{
 		x += rhs.x;
@@ -150,6 +169,33 @@ extension Vector3
 		return (float)System.Math.Acos(cos);
 	}
 
+
+	public float signed_angle_between(Vector3 vec, Vector3 normal, float epsilon = Constants.EPSILON, float zero_guard = 0)
+	{
+	    float product = this.length() * vec.length();
+	    if (product < epsilon){
+	        return zero_guard;
+	    }
+
+	    float cos = dot(vec) / product;
+	    if (cos > 1.0f){
+	        cos = 1.0f;
+	    }
+	    else if (cos < -1.0f){
+	        cos = -1.0f;
+	    }
+    
+	    // Get the unsigned angle magnitude
+	    float angle = (float)System.Math.Acos(cos);
+
+	    // Determine the sign using the cross product and the reference normal
+	    Vector3 cross = this.cross(vec); // Assumes you have a cross product method
+	    float sign = cross.dot(normal);
+
+	    // If the cross product points against the normal, the angle is negative
+	    return sign < 0 ? -angle : angle;
+	}
+
 	//NOTE(cris): Assumes normal is normalized
 	public Vector3 reflection_dir(Vector3 normal){
 		//    R = I  -  2           (I.N)        N
@@ -164,5 +210,30 @@ extension Vector3
 		return (angle * (Constants.PI / 180.0f));
 	}
 
+	public Vector3 Lerp(Vector3 target, float t) {
+		var t;
+		if (t < 0f) t = 0f;
+		else if (t > 1f) t = 1f;
+		return this + (target - this) * t;
+	}
 
+	public Vector3 ProjectOntoPlane(Vector3 planeNormal) {
+		return this - planeNormal * this.dot(planeNormal);
+	}
+
+	public override void ToString(System.String strBuffer)
+	{
+		strBuffer.Append(scope $"({this.x}, {this.y}, {this.z})");
+	}
+
+}
+
+extension I32Vector3 {
+
+	public this(int32 x, int32 y, int32 z){
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+	
 }
