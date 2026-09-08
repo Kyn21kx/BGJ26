@@ -28,6 +28,16 @@ public struct PickupArgs {
 	}
 }
 
+public struct SpawnArgs {
+	public uint64 sourceId;
+	public Vector3 position;
+
+	public this(uint64 sourceId, Vector3 position) {
+		this.sourceId = sourceId;
+		this.position = position;
+	}
+}
+
 [RegisterSystem]
 public class DropAndPickupSystem : GameSystem
 {
@@ -42,29 +52,20 @@ public class DropAndPickupSystem : GameSystem
 	.("res://Kalaka MODEL.glb", 0.1f, 4f)
 );
 
-	Query m_droppersQuery;
 	Query m_playersQuery;
 	List<uint64> m_entitiesToDestroy;
+	List<SpawnArgs> m_pendingSpawns;
 
 	void* m_scene;
 	RenderingSystemAPI m_renderAPI;
-	private BeefHush.Entity m_renderingSystem;
-	private BeefHush.Entity [MAX_PICKUP_COUNT] m_pickupsMeshRef;
 	private Random m_random;
-	//Needed to prevent listening an event more than once
 	private bool m_subscribedDeath = false;
-
-	float minDistSqr = float.MaxValue;
-	uint64 bestPickupId = 0;
-	PickUp* bestPickup = null;
 
 	public uint32 GetRandomPickupIndex()
 	{
-		//Currently randomizes everything from AvaiblePickups, this might be desirable to change
 		return (uint32)m_random.Next(0, MAX_PICKUP_COUNT);
 	}
 
-	// Instantiates a pickup entity with a mesh + AABB at the given position.
 	private void SpawnPickup(uint64 sourceId, Vector3 position){
 
 		uint32 index  = GetRandomPickupIndex();
@@ -134,45 +135,24 @@ public class DropAndPickupSystem : GameSystem
 		return true;
 	}
 
-	public void InitializePickupsMesh(){
-		const StringView renderSystemName = "RenderingSystem";
-		this.m_renderingSystem = BeefHush.Entity(Scene.CreateEntityWithKey(this.m_scene,(char8*)renderSystemName.ToRawData().Ptr, (uint64)renderSystemName.Length));
-
-		let handle = this.m_renderingSystem.GetComponent<RenderingSystemAPI>();
-
-		for(uint8 index = 0; index < MAX_PICKUP_COUNT; index++){
-			uint64 rootEntId = handle.instantiateMeshEntities(&(AvailablePickupsMesh[index].meshPath.Ptr[0]), handle.instance);
-			this.m_pickupsMeshRef[index] = .(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
-			LocalTransform* localXform = this.m_pickupsMeshRef[index].AddComponent<LocalTransform>();
-			//hack to keep the reference
-			localXform.SetScale(Constants.Vector3_ONE * Constants.EPSILON);
-		}
-	}
-
 	public void Init()
 	{
 		this.m_scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
 		m_random = new .();
 
 		this.m_entitiesToDestroy = new .(64);
+		this.m_pendingSpawns = new .(64);
 
 		const StringView renderSystemName = "RenderingSystem";
 		BeefHush.Entity renderingSystem = .(Scene.CreateEntityWithKey(this.m_scene, (char8*)renderSystemName.ToRawData().Ptr, (uint64)renderSystemName.Length));
 		this.m_renderAPI = *renderingSystem.GetComponent<RenderingSystemAPI>();
 
 		QueryBuilder builder = .();
-		builder.With<CanDrop>();
-		builder.With<RigidBody>();
-		this.m_droppersQuery = builder.Build();
-
-		builder = .();
 		builder.With<PlayerTag>();
 		builder.With<RigidBody>();
 		builder.With<Controller>();
 		builder.With<Inventory>();
 		this.m_playersQuery = builder.Build();
-
-		//this.InitializePickupsMesh();
 
 		if (!m_subscribedDeath) {
 		    m_subscribedDeath = true;
@@ -185,14 +165,14 @@ public class DropAndPickupSystem : GameSystem
 			if(this.TriggerDrop(entityRef.Id, rig, canDrop)){
 				Console.WriteLine("Drop succeed");
 				OnDropEvent(.(entityRef.Id, rig.aabb.pos, canDrop.dropChance));
-				SpawnPickup(entityRef.Id, rig.aabb.pos);
+				this.m_pendingSpawns.Add(.(entityRef.Id, rig.aabb.pos));
 				}
 			});
 		}
 
 	}
 	public void ProcessPickup(uint64 pickupId, uint64 playerId, PickUp* pickup, Inventory* inv){
-		InventorySystem.AddToSlot(inv, Spell.makeBox());
+		InventorySystem.AddToSlot(inv, pickup.toSpell());
 		if(!this.m_entitiesToDestroy.Contains(pickupId)){
 			this.m_entitiesToDestroy.Add(pickupId);
 		}
@@ -200,21 +180,26 @@ public class DropAndPickupSystem : GameSystem
 
 	public void OnShutdown() {
 		delete m_random;
-		for(uint8 index = 0; index < MAX_PICKUP_COUNT; index++ ){
-			Scene.DestroyEntity(this.m_scene, this.m_pickupsMeshRef[index].InnerEntity());
-		}
-		this.m_entitiesToDestroy.Clear();
+		delete m_entitiesToDestroy;
+		delete m_pendingSpawns;
 	}
 
 	public void OnUpdate(float delta){
+		for (SpawnArgs spawn in this.m_pendingSpawns) {
+			SpawnPickup(spawn.sourceId, spawn.position);
+		}
+		this.m_pendingSpawns.Clear();
+
 		this.m_playersQuery.Each<PlayerTag, RigidBody, Controller, Inventory>(scope (entityRef, tag, rig, controller, inv) => {
 		    if (InputManager.IsKeyDownThisFrame((EKeyCode)controller.pickup)) {
-				
+				float minDistSqr = float.MaxValue;
+				uint64 bestPickupId = 0;
+				PickUp* bestPickup = null;
+
 				PhysicsSystem.s_SpatialGrid.EachNeighborAt(rig.aabb.pos, 2, entityRef.Id, scope [&](neighborId) => {
 				    let neighborEnt = BeefHush.Entity(Scene.EntityFromIdUnchecked(this.m_scene, neighborId));
 				    let pickup = neighborEnt.GetComponent<PickUp>();
 				    if (pickup == null) return;
-				    // Optional: check distance more precisely
 				    float distSqr = (rig.aabb.pos - neighborEnt.GetComponent<RigidBody>().aabb.pos).length_squared();
 				    if (distSqr < minDistSqr) {
 				        minDistSqr = distSqr;
