@@ -44,6 +44,14 @@ public struct Transform {
 		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__SetEulerAngles(&this, euler);
 	}
 
+	public Quat GetRotationQuat() {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetRotationQuat(&this);
+	}
+
+	public void SetRotationQuat(Quat* rotationQuat) {
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__SetRotationQuat(&this, rotationQuat);
+	}
+
 	public Vector3 GetScale() {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetScale(&this);
 	}
