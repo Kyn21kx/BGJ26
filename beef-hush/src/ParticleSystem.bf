@@ -21,6 +21,7 @@ class ParticleSystem : GameSystem
 	struct EmissionRequest
 	{
 		public Vector3 basePos;
+		public Vector3 velocity;
 		public float minScale;
 		public float maxScale;
 		public uint64 assetId;
@@ -95,37 +96,37 @@ class ParticleSystem : GameSystem
 
 			emitter.lastEmissionTime = this.m_totalTime;
 
-			EmissionRequest request = .();
-			request.basePos = emitterxForm.GetPositionValue();
-			request.minScale = emitter.minScale;
-			request.maxScale = emitter.maxScale;
-			request.assetId = emitter.particleAssetId;
-			request.particleLifeTime = emitter.particleLifeTime;
-			this.SpawnParticle(request);
+			this.SpawnParticle(*emitter, emitterxForm.GetPositionValue());
 			emitter.currentParticleCount++;
 		});
 
 	}
 
-	public void SpawnParticle(EmissionRequest request){
+	public void SpawnParticle(in ParticleEmitter emitter, Vector3 basePos){
 		// Callers are expected to build requests from validated emitter data
 		// (see OnUpdate); the assetId guard lives there.
 		let handle = this.m_renderingSystem.GetComponent<RenderingSystemAPI>();
-		uint64 rootEntId = handle.instantiateMeshEntities(&(AvailableParticles[request.assetId][0]), handle.instance);
+		uint64 rootEntId = handle.instantiateMeshEntities(&(AvailableParticles[emitter.particleAssetId][0]), handle.instance);
 
 		BeefHush.Entity particle = .(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
 		var lifeTime = particle.AddComponent<Lifetime>();
-		lifeTime.remaining = request.particleLifeTime;
-		lifeTime.initialLifetime = request.particleLifeTime;
+		lifeTime.remaining = emitter.particleLifeTime;
+		lifeTime.initialLifetime = emitter.particleLifeTime;
 
 		particle.AddComponent<ParticleTag>();
 
 		var localxForm = particle.GetComponent<LocalTransform>();
-		float scale = RandomizeScale(request.minScale, request.maxScale);
+		float scale = RandomizeScale(emitter.minScale, emitter.maxScale);
 		localxForm.SetScale(Constants.Vector3_ONE * scale);
 
-		Vector3 pos = RandomizePosition(request.basePos);
+		Vector3 pos = RandomizePosition(basePos);
 		localxForm.SetPosition(pos);
+		if (emitter.velocity == Constants.Vector3_ZERO) return;
+		// Add a physics comp
+		RigidBody* rig = particle.AddComponent<RigidBody>();
+		(*rig) = .();
+		rig.aabb.pos = pos;
+		rig.SetVelocity(emitter.velocity);
 	}
 
 	public float RandomizeScale(float min, float max){
