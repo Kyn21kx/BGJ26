@@ -143,11 +143,13 @@ class SpellSystem : GameSystem
 		(*emitter) = .();
 		emitter.maxParticles = 500;
 		emitter.maxScale = 0.2f;
-		emitter.minScale = 0.05f;
+		emitter.emitRadius = 0.3f;
+		emitter.minScale = 0.1f;
 		emitter.particleAssetId = 0; // This will depend on the spell type
-		emitter.particleLifeTime = 0.5f;
+		emitter.particleLifeTime = 1f;
 		emitter.velocity = shootDir * -3.0f; // We could make them go slightly up to disappear
-		emitter.emitRate = 0.05f;
+		emitter.velocity.y = 0.0f;
+		emitter.emitRate = 0.01f;
 	}
 
 	public void OnUpdate(float delta)

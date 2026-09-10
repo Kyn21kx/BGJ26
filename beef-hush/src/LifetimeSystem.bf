@@ -20,6 +20,7 @@ class LifetimeSystem : GameSystem
 
 		builder = .();
 		builder.With<Lifetime>();
+		builder.With<DecreaseScaleData>();
 		builder.With<LocalTransform>();
 		builder.With<ParticleTag>();
 		this.m_particleQuery = builder.Build();
@@ -48,10 +49,10 @@ class LifetimeSystem : GameSystem
 			Scene.DestroyEntity(this.m_scene, &entity);
 		}
 
-		this.m_particleQuery.Each<Lifetime, LocalTransform>(scope (entityRef, lifetime, xform) => {
+		this.m_particleQuery.Each<Lifetime, DecreaseScaleData, LocalTransform>(scope (entityRef, lifetime, decreaseScaleData, xform) => {
 			if (lifetime.initialLifetime > 0f) {
 				float t = lifetime.remaining / lifetime.initialLifetime;
-				xform.SetScale(Constants.Vector3_ONE * t);
+				xform.SetScale(decreaseScaleData.originalScale * t);
 			}
 		});
 	}

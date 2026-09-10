@@ -103,13 +103,17 @@ class ParticleSystem : GameSystem
 		lifeTime.remaining = emitter.particleLifeTime;
 		lifeTime.initialLifetime = emitter.particleLifeTime;
 
+
 		particle.AddComponent<ParticleTag>();
 
 		var localxForm = particle.GetComponent<LocalTransform>();
 		float scale = RandomizeScale(emitter.minScale, emitter.maxScale);
-		localxForm.SetScale(Constants.Vector3_ONE * scale);
+		Vector3 targetScale = Constants.Vector3_ONE * scale;
+		localxForm.SetScale(targetScale);
+		var initialScaleData = particle.AddComponent<DecreaseScaleData>();
+		initialScaleData.originalScale = targetScale;
 
-		Vector3 pos = RandomizePosition(basePos);
+		Vector3 pos = RandomizePosition(basePos, emitter.emitRadius);
 		localxForm.SetPosition(pos);
 		if (emitter.velocity == Constants.Vector3_ZERO) return;
 		// Add a physics comp
@@ -124,10 +128,10 @@ class ParticleSystem : GameSystem
 		return min + (max - min) * t;
 	}
 
-	public Vector3 RandomizePosition(Vector3 basePos){
-		float offsetX = ((float)m_random.NextDouble() - 0.5f) * 2.0f;
-		float offsetY = ((float)m_random.NextDouble() - 0.5f) * 2.0f;
-		float offsetZ = ((float)m_random.NextDouble() - 0.5f) * 2.0f;
+	public Vector3 RandomizePosition(Vector3 basePos, float radius){
+		float offsetX = MathUtils.RandFloat(this.m_random, 0.0f, radius);
+		float offsetY = MathUtils.RandFloat(this.m_random, 0.0f, radius);
+		float offsetZ = MathUtils.RandFloat(this.m_random, 0.0f, radius);
 		return basePos + Vector3(offsetX, offsetY, offsetZ);
 	}
 
