@@ -51,6 +51,8 @@ public struct HushFuncPtrTable {
 	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__GetPositionValue;
 	public function void(Transform* self,Vector3) HushFuncPtr_Hush__Transform__SetScale;
 	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__GetScale;
+	public function void(Transform* self,Quat*) HushFuncPtr_Hush__Transform__SetRotationQuat;
+	public function Quat(Transform* self) HushFuncPtr_Hush__Transform__GetRotationQuat;
 	public function void(Transform* self,Vector3*) HushFuncPtr_Hush__Transform__SetEulerAngles;
 	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__GetEulerAngles;
 	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__Forward;

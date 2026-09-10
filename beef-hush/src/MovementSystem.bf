@@ -25,10 +25,12 @@ public class MovementSsytem : GameSystem
 		this.entityQuery = builder.Build();
 
 		this.entityQuery.EachEntity(scope (entityRef) => {
+			WorldTransform* globalXform = entityRef.GetComponent<WorldTransform>();
 			LocalTransform* xform = entityRef.GetComponent<LocalTransform>();
 			RigidBody* rig = entityRef.GetComponent<RigidBody>();
 			*rig = .();
-			xform.SetScale(PLAYER_SCALE);
+			Vector3 scale = globalXform.GetScale();
+			xform.SetScale(scale);
 			rig.aabb.pos = xform.GetPositionValue();
 		});
 
@@ -64,7 +66,7 @@ public class MovementSsytem : GameSystem
 					movement = movement.normalized();
 				}
 
-				 rigidBody.SetVelocity(movement * movementStat.speed);
+				rigidBody.SetVelocity(movement * movementStat.speed);
 			});
 	}
 

@@ -4,6 +4,7 @@ using Hush;
 using System;
 using System.Collections;
 
+// Note (Nef): This system probably needs a refactor to make it simpler 
 [RegisterSystem]
 class ParticleSystem : GameSystem
 {
@@ -32,7 +33,7 @@ class ParticleSystem : GameSystem
 
 		QueryBuilder builder = .();
 		builder.With<ParticleEmitter>();
-		builder.With<LocalTransform>();
+		builder.With<WorldTransform>();
 		this.m_emitterQuery = builder.Build();
 
 		builder = .();
@@ -75,18 +76,13 @@ class ParticleSystem : GameSystem
 		// alive ParticleTags every frame is the only source of truth.
 		uint64 aliveParticles = this.m_particleTagQuery.Count();
 
-		// Collect emission requests while iterating; spawning inside the Each would
-		// create entities and move flecs tables, leaving the next row's component
-		// pointers dangling.
-		List<EmissionRequest> requests = scope List<EmissionRequest>();
-
-		this.m_emitterQuery.Each<ParticleEmitter, LocalTransform>(scope (entityRef, emitter, emitterxForm) => {
+		this.m_emitterQuery.Each<ParticleEmitter, WorldTransform>(scope (entityRef, emitter, emitterxForm) => {
 
 			if (this.m_totalTime - emitter.lastEmissionTime < emitter.emitRate){
 				return;
 			}
 
-			if (aliveParticles + (uint64)requests.Count >= (uint64)emitter.maxParticles){
+			if (aliveParticles >= (uint64)emitter.maxParticles){
 				return;
 			}
 
@@ -98,7 +94,6 @@ class ParticleSystem : GameSystem
 			}
 
 			emitter.lastEmissionTime = this.m_totalTime;
-			emitter.currentParticleCount = (int32)(aliveParticles + (uint64)requests.Count);
 
 			EmissionRequest request = .();
 			request.basePos = emitterxForm.GetPositionValue();
@@ -106,12 +101,10 @@ class ParticleSystem : GameSystem
 			request.maxScale = emitter.maxScale;
 			request.assetId = emitter.particleAssetId;
 			request.particleLifeTime = emitter.particleLifeTime;
-			requests.Add(request);
+			this.SpawnParticle(request);
+			emitter.currentParticleCount++;
 		});
 
-		for (let request in requests){
-			this.SpawnParticle(request);
-		}
 	}
 
 	public void SpawnParticle(EmissionRequest request){
