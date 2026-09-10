@@ -8,8 +8,8 @@ using System.Collections;
 [RegisterSystem]
 class ParticleSystem : GameSystem
 {
-	private const uint8 MAX_PARTICLES_COUNT = 2;
-	private const StringView [MAX_PARTICLES_COUNT] AvailableParticles = .("res://Box.glb","res://decahedron.glb");
+	private const uint8 MAX_PARTICLES_COUNT = 3;
+	private const StringView [MAX_PARTICLES_COUNT] AvailableParticles = .("res://Box.glb","res://decahedron.glb", "res://FireBallPURPLE.glb");
 	private Query m_emitterQuery;
 	private Query m_particleTagQuery;
 	private float m_totalTime;
@@ -17,16 +17,6 @@ class ParticleSystem : GameSystem
 	private BeefHush.Entity m_renderingSystem;
 	private BeefHush.Entity [MAX_PARTICLES_COUNT] m_particlesMeshRef;
 	private Random m_random;
-
-	struct EmissionRequest
-	{
-		public Vector3 basePos;
-		public Vector3 velocity;
-		public float minScale;
-		public float maxScale;
-		public uint64 assetId;
-		public float particleLifeTime;
-	}
 
 	public void Init(){
 

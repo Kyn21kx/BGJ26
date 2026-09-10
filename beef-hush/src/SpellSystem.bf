@@ -75,7 +75,7 @@ class SpellSystem : GameSystem
 		this.m_renderingSystem = BeefHush.Entity(Scene.CreateEntityWithKey(this.m_scene, (char8*)renderSystemName.ToRawData().Ptr, (uint64)renderSystemName.Length));
 		
 		let handle = this.m_renderingSystem.GetComponent<RenderingSystemAPI>();
-		const StringView path = "res://decahedron.glb";
+		const StringView path = "res://FireBallPURPLE.glb";
 		uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
 
 		this.m_bulletMeshRef = .(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
@@ -116,11 +116,44 @@ class SpellSystem : GameSystem
 		return (worldPos - currPos).normalized();
 	}
 
+	private void SpawnBullet(RigidBody* spellRig, Spell* spell) {
+		const Vector3 bulletScale = Constants.Vector3_ONE * 30.0f;
+		// Slow path at instancing
+		let handle = this.m_renderingSystem.GetComponent<RenderingSystemAPI>();
+		const StringView path = "res://decahedron.glb";
+		uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
+
+		let bulletRootEntity = BeefHush.Entity(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
+		var bulletXform = bulletRootEntity.GetComponent<LocalTransform>();
+		bulletXform.SetScale(bulletScale);
+		let collider = bulletRootEntity.AddComponent<Collider>();
+		collider.identifierTag = (int32)EEntityTag.Spell;
+		RigidBody* rig = bulletRootEntity.AddComponent<RigidBody>();
+		*rig = .(); // Set default vals
+		rig.aabb.pos = spellRig.aabb.pos; // + The direction offset
+		Vector3 shootDir = this.GetShootDirection(spellRig.aabb.pos);
+		rig.SetVelocity(shootDir * spell.projectileSpeed);
+		rig.SetAngularVelocity(shootDir * spell.projectileSpeed * 1.5f);
+		Lifetime* bulletLifetime = bulletRootEntity.AddComponent<Lifetime>();
+		// t = d / V
+		bulletLifetime.remaining = spell.range / spell.projectileSpeed;
+
+		// Add particle system
+		ParticleEmitter* emitter = bulletRootEntity.AddComponent<ParticleEmitter>();
+		(*emitter) = .();
+		emitter.maxParticles = 500;
+		emitter.maxScale = 0.2f;
+		emitter.minScale = 0.05f;
+		emitter.particleAssetId = 0; // This will depend on the spell type
+		emitter.particleLifeTime = 0.5f;
+		emitter.velocity = shootDir * -3.0f; // We could make them go slightly up to disappear
+		emitter.emitRate = 0.05f;
+	}
+
 	public void OnUpdate(float delta)
 	{
 		this.m_totalTime += delta;
 		this.ManaSubsystem(delta);
-		const Vector3 bulletScale = Constants.Vector3_ONE * 30.0f;
 		this.m_fireSpellsQuery.Each<Spell, Controller, ManaStat, RigidBody>(scope (entityRef, spell, controller, manaStat, spellRig) => {
 			float diff = this.m_totalTime - spell.lastFireTime;
 			// TODO: Make the component decide if this is a mouse button press or something else
@@ -130,26 +163,7 @@ class SpellSystem : GameSystem
 				Console.WriteLine("Fired spell!");
 				manaStat.currentMana -= spell.manaCost;
 				spell.lastFireTime = this.m_totalTime;
-
-				// Slow path at instancing
-				let handle = this.m_renderingSystem.GetComponent<RenderingSystemAPI>();
-				const StringView path = "res://decahedron.glb";
-				uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
-
-				let bulletRootEntity = BeefHush.Entity(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
-				var bulletXform = bulletRootEntity.GetComponent<LocalTransform>();
-				bulletXform.SetScale(bulletScale);
-				let collider = bulletRootEntity.AddComponent<Collider>();
-				collider.identifierTag = (int32)EEntityTag.Spell;
-				RigidBody* rig = bulletRootEntity.AddComponent<RigidBody>();
-				*rig = .(); // Set default vals
-				rig.aabb.pos = spellRig.aabb.pos; // + The direction offset
-				Vector3 shootDir = this.GetShootDirection(spellRig.aabb.pos);
-				rig.SetVelocity(shootDir * spell.projectileSpeed);
-				rig.SetAngularVelocity(shootDir * spell.projectileSpeed * 1.5f);
-				Lifetime* bulletLifetime = bulletRootEntity.AddComponent<Lifetime>();
-				// t = d / V
-				bulletLifetime.remaining = spell.range / spell.projectileSpeed;
+				SpawnBullet(spellRig, spell);
 			}
 		});
 
