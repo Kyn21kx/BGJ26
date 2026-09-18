@@ -180,13 +180,23 @@ public class NPCSystem : GameSystem {
 		
 		// Prepare attack
 		agent.state = .AttackPreparing;
-		enemy.actionTimeRemaining = ATTACK_PREPARE_TIME;
+		enemy.actionTimeRemaining = enemy.attackPrepareTime;
 		rig.SetVelocity(Constants.Vector3_ZERO);
 
 		// Add animation component
-		var animComp = entity.AddComponent<ShakingAnimation>();
-		animComp.duration = ATTACK_PREPARE_TIME;
-		animComp.speed = 1f;
+		EAttackType attackType = (EAttackType)enemy.attackType;
+		switch(attackType) {
+		case .Melee:
+			var animComp = entity.AddComponent<ShakingAnimation>();
+			animComp.duration = enemy.attackPrepareTime;
+			animComp.speed = 1f;
+			break;
+		case .Ranged:
+			var animComp = entity.AddComponent<TiltAnimation>();
+			animComp.duration = enemy.attackPrepareTime;
+			animComp.speed = 1f;
+			break;
+		}
 		return true;
 	}
 
