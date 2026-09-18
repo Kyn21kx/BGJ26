@@ -254,10 +254,10 @@ public class NPCSystem : GameSystem {
 		BeefHush.Entity lastFoundPlayer = this.QueryFirstPlayer(*entity, rig, out minPlayerDistanceSqr);
 
 		// Executing otherwise
-		if (enemy.attackType == .Melee) {
+		if (enemy.attackType == (uint32)EAttackType.Melee) {
 			this.ExecuteMeleeAttack(entity, enemy, rig, agent, lastFoundPlayer, minPlayerDistanceSqr);
 		}
-		else if (enemy.attackType == .Ranged) {
+		else if (enemy.attackType == (uint32)EAttackType.Ranged) {
 			this.ExecuteRangedAttack(entity, enemy, rig, agent, lastFoundPlayer, minPlayerDistanceSqr);
 		}
 		enemy.lastAttackTime = this.m_ellapsed;
