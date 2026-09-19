@@ -53,8 +53,6 @@ public class NPCSystem : GameSystem {
 	}
 
 	public void NavSubSystem(float delta, BeefHush.Entity* entityRef, NavAgent* agent, RigidBody* rig, LocalTransform* xform) {
-		Console.WriteLine(scope $"State: {agent.state}");
-
 		if ((agent.state & .InPathFindingPhase) != 0) {
 			LookForAvailableDirection(delta, entityRef, agent, xform, rig);
 			return;
@@ -164,6 +162,7 @@ public class NPCSystem : GameSystem {
 		Vector3 perpRight = directionTaking.cross(Constants.Vector3_UP).normalized();
 		Vector3 toTarget = (agent.targetPos - rig.aabb.pos).normalized();
 		float rightDot = perpRight.dot(toTarget);
+		Vector3 targetDir = agent.targetDirection;
 		return (rightDot > 0f) ? perpRight : (perpRight * -1f);
 	}
 
@@ -173,8 +172,7 @@ public class NPCSystem : GameSystem {
 			return false;
 		}
 		float cdDiff = (this.m_ellapsed - enemy.lastAttackTime);
-		Console.WriteLine(scope $"Cooldown ellapsed : {cdDiff}");
-		if (cdDiff < enemy.attackCooldown || distanceToPlayerSqr > ATTACK_DASH_DISTANCE) {
+		if (cdDiff < enemy.attackCooldown || distanceToPlayerSqr > (enemy.attackRange * enemy.attackRange)) {
 			return false;
 		}
 		
@@ -192,14 +190,19 @@ public class NPCSystem : GameSystem {
 			animComp.speed = 1f;
 			break;
 		case .Ranged:
-			var animComp = entity.AddComponent<TiltAnimation>();
+			TiltAnimation* animComp = entity.AddComponent<TiltAnimation>();
+			(*animComp) = .();
 			animComp.duration = enemy.attackPrepareTime;
+			animComp.direction = -1;
 			animComp.speed = 1f;
 			break;
+		default:
+			Console.WriteLine(scope $"No attack type to match {enemy.attackType}");
+			break;
 		}
+		
 		return true;
 	}
-
 	private void ExecuteMeleeAttack(BeefHush.Entity* entity, Enemy* enemy, RigidBody* rig, NavAgent* agent, in BeefHush.Entity lastFoundPlayer, float disToPlayerSqr) {
 		// Dash towards the player and check which one is the closest one
 		const float speed = ATTACK_DASH_DISTANCE / ATTACK_EXECUTE_TIME;
@@ -223,7 +226,7 @@ public class NPCSystem : GameSystem {
 	private void ExecuteRangedAttack(BeefHush.Entity* entity, Enemy* enemy, RigidBody* rig, NavAgent* agent, in BeefHush.Entity lastFoundPlayer, float disToPlayerSqr) {
 		// This one does not need to check the range, that check already passed
 		// Make the enemy's projectile
-		SpellSystem.MakeSpell("res://decahedron.glb", (int32)EEntityTag.EnemySpell, rig.aabb.pos, agent.targetDirection, 10.0f, enemy.attackRange);
+		SpellSystem.MakeSpell("res://decahedron.glb", (int32)EEntityTag.EnemySpell, rig.aabb.pos, agent.targetDirection, 10.0f, 15.0f);
 		agent.state = .Default;
 	}
 
@@ -301,6 +304,7 @@ public class NPCSystem : GameSystem {
 				return false;
 			});
 			if (!blocked) {
+				toTarget.y = 0;
 				agent.targetDirection = toTarget;
 				agent.targetPos = visibleTargetPos;
 				agent.state = .HeadingToPlayer;
@@ -322,6 +326,8 @@ public class NPCSystem : GameSystem {
 			xform.SetEulerAngles(&newRot);
 		}
 		else {
+			Vector3 targetDir = agent.targetDirection;
+			targetDir.y = 0.0f;
 			rig.SetVelocity(agent.targetDirection);
 		}
 
@@ -365,7 +371,6 @@ public class NPCSystem : GameSystem {
 				}
 				float angle = rig.aabb.pos.angle_between(agent.targetPos) * Constants.RAD2DEG;
 				bool rightClear = !rightRay.Intersects(wallRig.aabb, out distance) || distance > 1f;
-				Console.WriteLine(scope $"Right clear: {rightClear}, dis: {distance}. Angle to wall: {angle}, normal: {agent.normalFaceOfHit}");
 				// bool leftClear = !leftRay.Intersects(wallRig.aabb, out distance) || distance > 1f;
 				if (rightClear && angle > 5f) {
 					return true;
@@ -408,6 +413,7 @@ public class NPCSystem : GameSystem {
 				Vector3 diff = (playerPos - rig.aabb.pos);
 				float playerDis = diff.length_squared();
 				agent.targetDirection = diff.normalized();
+				agent.targetDirection.y = 0;
 				agent.targetPos = playerPos;
 				agent.state = ENPCState.HeadingToPlayer;
 

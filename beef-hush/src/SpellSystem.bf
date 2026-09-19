@@ -48,19 +48,24 @@ class SpellSystem : GameSystem
 		PhysicsSystem.OnCollisionEvent.Add(new (a, b) => {
 			ColliderArgs* spellColl = &b;
 			ColliderArgs* otherColl = &a;
-			if (a.collider.identifierTag == (int32)EEntityTag.Spell) {
+			if (a.collider.identifierTag & (int32)EEntityTag.IsSpellType != 0) {
 				spellColl = &a;
 				otherColl = &b;
 			}
-			else if (b.collider.identifierTag != (int32)EEntityTag.Spell) {
+			else if (b.collider.identifierTag & (int32)EEntityTag.IsSpellType == 0) {
 				// Not a spell collision
 				return;
 			}
 
 			// TODO: Make it a switch
 			// Now we can handle collisions with spells
-			if (otherColl.collider.identifierTag == (int32)EEntityTag.Enemy) {
+			if (spellColl.collider.identifierTag == (int32)EEntityTag.Spell && otherColl.collider.identifierTag == (int32)EEntityTag.Enemy) {
 				// Damage the enemy
+				HealthSystem.DamageEntity(this.m_scene, otherColl.id, 1.0f, spellColl.id);
+			}
+			else if (spellColl.collider.identifierTag == (int32)EEntityTag.EnemySpell && otherColl.collider.identifierTag == (int32)EEntityTag.Player) {
+				// Damage the enemy
+				HealthSystem.DamageEntity(this.m_scene, otherColl.id, 1.0f, spellColl.id);
 			}
 			else if (otherColl.collider.identifierTag == (int32)EEntityTag.Wall) {
 				// Do whatever the spell needs to do on collision, then delete it

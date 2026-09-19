@@ -59,7 +59,21 @@ public class AnimationSystem : GameSystem {
 	}
 
 	private void Tilt(float delta, BeefHush.Entity* entityRef, TiltAnimation* tilter, LocalTransform* xform, WorldTransform* globalXform) {
-		
+		// Pitch up and down
+		tilter.duration -= delta * tilter.speed;
+		if (tilter.duration <= 0.0f) {
+			entityRef.RemoveComponent<TiltAnimation>();
+			return;
+		}
+		Vector3 rot = xform.GetEulerAngles();
+		if (tilter.direction > 0) {
+			rot.x += 35 * delta;
+		}
+		else {
+			rot.x -= 90 * delta;
+		}
+
+		xform.SetEulerAngles(&rot);
 	}
 
 	public void OnUpdate(float delta)

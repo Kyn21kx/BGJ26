@@ -19,7 +19,7 @@ public struct ColliderArgs {
 }
 
 [RegisterSystem]
-public class PhysicsSystem : GameSystem{
+public class PhysicsSystem : GameSystem {
 	public static SpatialGrid s_SpatialGrid => s_spatialGrid;
 	private Query entityQuery;
 	private Query m_collidersQuery;
