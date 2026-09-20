@@ -20,6 +20,11 @@ class EnvironmentSystem : GameSystem
 		let renderAPI = renderingSysEnt.GetComponent<RenderingSystemAPI>();
 
 		BeefHush.Entity parent = .(Scene.CreateEntityWithName(scene, "Floor", (uint64)("Floor").Length));
+		var worldXform = parent.AddComponent<WorldTransform>();
+		var localXform = parent.AddComponent<LocalTransform>();
+		(*worldXform) = .();
+		(*localXform) = .();
+		localXform.SetScale(Constants.Vector3_ONE);
 		// Spawn a tile every X
 		for (int32 i = 0; i < WIDTH; i++) {
 			for (int32 j = 0; j < HEIGHT; j++) {

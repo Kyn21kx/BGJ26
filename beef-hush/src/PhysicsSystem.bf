@@ -19,7 +19,7 @@ public struct ColliderArgs {
 }
 
 [RegisterSystem]
-public class PhysicsSystem : GameSystem{
+public class PhysicsSystem : GameSystem {
 	public static SpatialGrid s_SpatialGrid => s_spatialGrid;
 	private Query entityQuery;
 	private Query m_collidersQuery;
@@ -93,11 +93,12 @@ public class PhysicsSystem : GameSystem{
 		builder = .();
 		builder.With<BeefHush.MeshReference>();
 		builder.With<RigidBody>();
-		builder.With<Collider>();
+		// Collider isn't really needed here
+		// builder.With<Collider>();
 		builder.With<LocalTransform>();
 		builder.With<WorldTransform>();
 		Query pendingBodiesQ = builder.Build();
-		pendingBodiesQ.Each<BeefHush.MeshReference, RigidBody, Collider, LocalTransform, WorldTransform>(scope (entityRef, mesh, rig, coll, localXform, globalXform) => {
+		pendingBodiesQ.Each<BeefHush.MeshReference, RigidBody, LocalTransform, WorldTransform>(scope (entityRef, mesh, rig, localXform, globalXform) => {
 		   	// Local xform
 			mesh.CalculateBounds(&(rig.aabb.pos), &(rig.aabb.size));
 			rig.physicsImpulse = .();
@@ -122,7 +123,7 @@ public class PhysicsSystem : GameSystem{
 			BeefHush.Entity other = .(Scene.EntityFromIdUnchecked(this.m_scene, otherId));
 			RigidBody* otherRig = other.GetComponent<RigidBody>(this.m_rigTerm);
 			Collider* otherColl = other.GetComponent<Collider>(this.m_colliderTerm);
-			if (otherRig == null || !rig.aabb.intersects(otherRig.aabb)) {
+			if (otherRig == null || !rig.aabb.intersects_ignore_height(otherRig.aabb)) {
 				return;
 			}
 			// Emit collision event

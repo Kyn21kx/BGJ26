@@ -11,3 +11,11 @@ struct Oscillator {
 	public float heightMin;
 	public int direction;
 }
+
+[HushComponent, CRepr]
+struct TiltAnimation {
+	// public float blend;
+	public float duration;
+	public float speed;
+	public int direction;
+}
