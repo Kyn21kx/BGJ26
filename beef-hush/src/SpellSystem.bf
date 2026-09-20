@@ -15,7 +15,7 @@ class SpellSystem : GameSystem
 	private BeefHush.Entity m_bulletMeshRef;
 	private BeefHush.Entity m_mainCamEntity;
 
-	private List<uint64> m_entitiesToDelete;
+	private HashSet<uint64> m_entitiesToDelete;
 
 	public void Init()
 	{
@@ -46,6 +46,9 @@ class SpellSystem : GameSystem
 		   this.m_mainCamEntity = entityRef;
 		});
 		PhysicsSystem.OnCollisionEvent.Add(new (a, b) => {
+			if (this.m_entitiesToDelete.Contains(a.id) || this.m_entitiesToDelete.Contains(b.id)) {
+				return;
+			}
 			ColliderArgs* spellColl = &b;
 			ColliderArgs* otherColl = &a;
 			if (a.collider.identifierTag & (int32)EEntityTag.IsSpellType != 0) {
@@ -59,13 +62,16 @@ class SpellSystem : GameSystem
 
 			// TODO: Make it a switch
 			// Now we can handle collisions with spells
+			Console.WriteLine(scope $"Spell coll event, between identifiers {spellColl.collider.identifierTag} and {otherColl.collider.identifierTag}");
 			if (spellColl.collider.identifierTag == (int32)EEntityTag.Spell && otherColl.collider.identifierTag == (int32)EEntityTag.Enemy) {
 				// Damage the enemy
 				HealthSystem.DamageEntity(this.m_scene, otherColl.id, 1.0f, spellColl.id);
+				this.m_entitiesToDelete.Add(spellColl.id);
 			}
 			else if (spellColl.collider.identifierTag == (int32)EEntityTag.EnemySpell && otherColl.collider.identifierTag == (int32)EEntityTag.Player) {
 				// Damage the enemy
 				HealthSystem.DamageEntity(this.m_scene, otherColl.id, 1.0f, spellColl.id);
+				this.m_entitiesToDelete.Add(spellColl.id);
 			}
 			else if (otherColl.collider.identifierTag == (int32)EEntityTag.Wall) {
 				// Do whatever the spell needs to do on collision, then delete it

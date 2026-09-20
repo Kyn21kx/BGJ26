@@ -123,7 +123,7 @@ public class PhysicsSystem : GameSystem {
 			BeefHush.Entity other = .(Scene.EntityFromIdUnchecked(this.m_scene, otherId));
 			RigidBody* otherRig = other.GetComponent<RigidBody>(this.m_rigTerm);
 			Collider* otherColl = other.GetComponent<Collider>(this.m_colliderTerm);
-			if (otherRig == null || !rig.aabb.intersects(otherRig.aabb)) {
+			if (otherRig == null || !rig.aabb.intersects_ignore_height(otherRig.aabb)) {
 				return;
 			}
 			// Emit collision event
