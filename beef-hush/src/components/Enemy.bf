@@ -3,36 +3,25 @@ namespace BeefHush;
 using Hush;
 using System;
 
-enum EEnemyState : int32 {
-	LookingForPlayer = 0,
-	HeadingToPlayer = 1,
-	FleeingFromPlayer,
-	AttackPreparing = 4,
-	AttackExecuting = 8,
-	IsAttackPhase = AttackPreparing | AttackExecuting
+enum EAttackType : uint32 {
+	Melee,
+	Ranged
 }
 
 [HushComponent, CRepr]
 struct Enemy // Serves as a tag and sensor data
 {
-	public Vector3 avoidanceDirection = .(); // This one will take priority if not zero
-	public Vector3 targetDirection = .();
-	public Vector3 targetPos = .();
-	public EEnemyState state = EEnemyState.LookingForPlayer;
-	public float coneAngle = 0f;
 	// TODO: Separate into an attack component
 	public float actionTimeRemaining = .();
 	public float attackCooldown = 0f;
 	public float lastAttackTime = 0f;
+	public float attackRange = 0f;
+	public float attackPrepareTime = 0f; 
+	public uint32 attackType = (uint32)EAttackType.Melee;
 	public this() {
-		this.avoidanceDirection = .();
-		this.targetDirection = .();
-		this.targetPos = .();
-		this.state = .LookingForPlayer;
 		this.actionTimeRemaining = .();
 		this.attackCooldown = 0f;
 		this.lastAttackTime = 0f;
-		this.coneAngle = 0f;
-		
+		this.attackType = (uint32)EAttackType.Melee;
 	}
 }

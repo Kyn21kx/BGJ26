@@ -12,7 +12,7 @@ struct JohanIdentifier {
 
 
 [RegisterSystem]
-class ExampleSystem : GameSystem
+class JohanIdentificationSystem : GameSystem
 {
 	Query m_johanssQuery;
 

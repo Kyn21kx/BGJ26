@@ -122,10 +122,11 @@ class AimGuideSystem : GameSystem
 
 	public void OnUpdate(float delta)
 	{
-		if (!this.instanced) {
-			this.InitEntity();
-			this.instanced = true;
-		}
+		// Turn this back on if aiming starts to behave weird or you want to debug the position
+		// if (!this.instanced) {
+		// 	this.InitEntity();
+		// 	this.instanced = true;
+		// }
 		this.m_aimGuideQuery.Each<LocalTransform, AimGuide>(scope (entityRef, xform, guide) => {
 			xform.SetPosition(GetPosInWorldSpace(guide.depth));
 		});

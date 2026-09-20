@@ -15,5 +15,11 @@ public static class MathUtils {
 	    // Interpolate using the eased t
 	    return Math.Lerp(start, end, t);
 	}
+
+	public static float RandFloat(in Random r, float min, float max) {
+		float t = (float)r.NextDouble();
+		return min + (max - min) * t;
+	}
 }
+
 

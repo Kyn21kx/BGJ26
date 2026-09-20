@@ -23,6 +23,12 @@ public struct AABB
 
 	}
 
+	public bool intersects_ignore_height(in AABB test){
+		return  (Math.Abs(pos.x - test.pos.x) <= (size.x + test.size.x) / 2) &&
+				(Math.Abs(pos.z - test.pos.z) <= (size.z + test.size.z) / 2);
+
+	}
+
 	public bool contains(Vector3 test){
 
 		return  (test.x >= min.x) && (test.x <= max.x) &&
