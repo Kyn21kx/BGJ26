@@ -46,6 +46,7 @@ class SpellSystem : GameSystem
 		   this.m_mainCamEntity = entityRef;
 		});
 		PhysicsSystem.OnCollisionEvent.Add(new (a, b) => {
+			// TODO: Make this better by making sure the Physics system does not emit multiple events for the same entities
 			if (this.m_entitiesToDelete.Contains(a.id) || this.m_entitiesToDelete.Contains(b.id)) {
 				return;
 			}
