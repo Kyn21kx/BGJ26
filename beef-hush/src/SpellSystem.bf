@@ -7,9 +7,9 @@ using System.Collections;
 [RegisterSystem]
 class SpellSystem : GameSystem
 {
-	private const uint8 MAX_SPELL_MESH_COUNT = SpellType.MAX;
+	private const uint8 MAX_SPELL_MESH_COUNT = (uint8)SpellType.MAX;
 	// NOTE: This should match the Spell's SpellType enum
-	private const StringView [MAX_SPELL_MESH_COUNT] availableSpells = .("res://FireBallPURPLE.glb");
+	private const StringView [MAX_SPELL_MESH_COUNT] availableSpells = .("res://FireBallPURPLE.glb", "res://decahedron.glb");
 	private Query m_fireSpellsQuery;
 	private Query m_manaQuery;
 	private float m_totalTime;
@@ -109,7 +109,7 @@ class SpellSystem : GameSystem
 			this.m_bulletsMeshRef[index] = .(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
 			// Make it invisible, but the MeshReference Component is still there
 			// this.m_bulletsMeshRef[index].RemoveComponent<WorldTransform>();
-			this.m_bulletsMeshRef[index].GetComponent<LocalTransform>().SetScale(Constants.EPSILON);
+			this.m_bulletsMeshRef[index].GetComponent<LocalTransform>().SetScale(Constants.Vector3_ONE * Constants.EPSILON);
 		}
 	}
 
@@ -145,7 +145,7 @@ class SpellSystem : GameSystem
 		return (worldPos - currPos).normalized();
 	}
 
-	public static uint64 MakeSpell(Spell* spell, StringView baseMesh, int32 collIdentifier, Vector3 position, Vector3 direction, float speed, float range) {
+	public static uint64 MakeSpell(SpellType type, int32 collIdentifier, Vector3 position, Vector3 direction, float speed, float range) {
 		const Vector3 bulletScale = Constants.Vector3_ONE * 30.0f;
 		// Slow path at instancing
 		const StringView renderSystemName = "RenderingSystem";
@@ -153,7 +153,7 @@ class SpellSystem : GameSystem
 		let renderingSystem = BeefHush.Entity(Scene.CreateEntityWithKey(scene, (char8*)renderSystemName.ToRawData().Ptr, (uint64)renderSystemName.Length));
 
 		let handle = renderingSystem.GetComponent<RenderingSystemAPI>();
-		StringView path = availableSpells[spell.type];
+		StringView path = availableSpells[(int32)type];
 		uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
 
 		let bulletRootEntity = BeefHush.Entity(Scene.EntityFromIdUnchecked(scene, rootEntId));
@@ -189,7 +189,7 @@ class SpellSystem : GameSystem
 		const StringView path = "res://decahedron.glb";
 
 		castingSubSystem(entityRef, spell, &direction);
-		MakeSpell(path, (int32)EEntityTag.Spell, spellRig.aabb.pos, direction, spell.projectileSpeed, spell.range);
+		MakeSpell((SpellType)spell.type, (int32)EEntityTag.Spell, spellRig.aabb.pos, direction, spell.projectileSpeed, spell.range);
 	}
 
 	public void OnUpdate(float delta)

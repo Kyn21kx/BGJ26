@@ -226,7 +226,7 @@ public class NPCSystem : GameSystem {
 	private void ExecuteRangedAttack(BeefHush.Entity* entity, Enemy* enemy, RigidBody* rig, NavAgent* agent, in BeefHush.Entity lastFoundPlayer, float disToPlayerSqr) {
 		// This one does not need to check the range, that check already passed
 		// Make the enemy's projectile
-		SpellSystem.MakeSpell("res://decahedron.glb", (int32)EEntityTag.EnemySpell, rig.aabb.pos, agent.targetDirection, 10.0f, 15.0f);
+		SpellSystem.MakeSpell(SpellType.Fire, (int32)EEntityTag.EnemySpell, rig.aabb.pos, agent.targetDirection, 10.0f, 15.0f);
 		agent.state = .Default;
 	}
 
