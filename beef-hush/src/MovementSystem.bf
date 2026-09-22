@@ -4,7 +4,7 @@ using Hush;
 using System;
 
 [RegisterSystem]
-public class MovementSsytem : GameSystem
+public class MovementSytem : GameSystem
 {
 
 	// Fixing player scale at runtime, lol

@@ -112,7 +112,7 @@ public class PhysicsSystem : GameSystem {
 	}
 
 	public void OnShutdown(){
-		//NOTE(cris):Aqui el sistema de fisicas deberia hacer algo?
+
 		Console.WriteLine("Physics system was shutdown!");
 		s_spatialGrid.Dispose();
 	}
@@ -127,6 +127,7 @@ public class PhysicsSystem : GameSystem {
 				return;
 			}
 			// Emit collision event
+			Console.WriteLine("Collision detected!");
 			OnCollisionEvent(.(id, rig, coll), .(otherId, otherRig, otherColl));
 		});
 	}
