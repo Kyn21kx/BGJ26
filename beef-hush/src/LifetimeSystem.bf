@@ -8,34 +8,23 @@ using System.Collections;
 class LifetimeSystem : GameSystem
 {
 	void* m_scene;
-	Query m_spellObjects;
-	Query m_particleObjects;
-	Query m_stunnedObjects;
+	Query m_lifetimeObjects;
+	Query m_particleQuery;
 
+	
 	public void Init()
 	{
 		this.m_scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
 		QueryBuilder builder = .();
 		builder.With<Lifetime>();
-		builder.With<Spell>();
-		// Only entities explicitly marked to expire on their Lifetime running out
-		// get destroyed (e.g. fired projectiles). Entities that carry a Lifetime for
-		// other reasons (like a stunned player's stun timer) are NOT destroyed.
-		//builder.With<DestroyOnExpiry>();
-		this.m_spellObjects= builder.Build();
+		this.m_lifetimeObjects = builder.Build();
 
 		builder = .();
 		builder.With<Lifetime>();
 		builder.With<DecreaseScaleData>();
 		builder.With<LocalTransform>();
 		builder.With<ParticleTag>();
-		this.m_particleObjects = builder.Build();
-
-		builder = .();
-		builder.With<Lifetime>();
-		builder.With<IsStunned>();
-		this.m_stunnedObjects = builder.Build();
-
+		this.m_particleQuery = builder.Build();
 	}
 
 	public void OnShutdown()

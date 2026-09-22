@@ -187,10 +187,11 @@ class SpellSystem : GameSystem
 		emitter.emitRate = 0.01f;
 		return rootEntId;
 	}
-	private void SpawnBullet(RigidBody* spellRig, Spell* spell, Vector3 direction) {
+
+	private void SpawnBullet(BeefHush.Entity* entityRef, RigidBody* spellRig, Spell* spell, Vector3 direction) {
 		const StringView path = "res://decahedron.glb";
 
-		castingSubSystem(&entityRef, spell, &direction);
+		castingSubSystem(entityRef, spell, &direction);
 		MakeSpell(path, (int32)EEntityTag.Spell, spellRig.aabb.pos, direction, spell.projectileSpeed, spell.range);
 	}
 
@@ -220,7 +221,7 @@ class SpellSystem : GameSystem
 				spell.lastFireTime = this.m_totalTime;
 
 				Vector3 direction = this.GetShootDirection(spellRig.aabb.pos);
-				SpawnBullet(spellRig, spell, direction);
+				SpawnBullet(&entityRef, spellRig, spell, direction);
 			}
 		});
 
