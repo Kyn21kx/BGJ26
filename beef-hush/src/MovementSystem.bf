@@ -21,10 +21,15 @@ public class MovementSytem : GameSystem
 		EntityRegistry.s_Rig = builder.With<RigidBody>();
 		builder.With<Controller>();
 		builder.With<MovementStat>();
-		
+		builder.With<IsStunned>();
 		this.entityQuery = builder.Build();
 
 		this.entityQuery.EachEntity(scope (entityRef) => {
+			// TODO: Maybe we need to restore this, but maybe we don't lol
+			// if (entityRef.GetComponent<IsStunned>() == null) {
+			// 	entityRef.AddComponent<IsStunned>();
+			// }
+
 			WorldTransform* globalXform = entityRef.GetComponent<WorldTransform>();
 			LocalTransform* xform = entityRef.GetComponent<LocalTransform>();
 			RigidBody* rig = entityRef.GetComponent<RigidBody>();
@@ -42,8 +47,15 @@ public class MovementSytem : GameSystem
 	}
 
 	public void OnUpdate(float delta){
-		this.entityQuery.Each<PlayerTag, RigidBody, Controller, MovementStat>(scope (entityRef,
-			 tag, rigidBody, controller, movementStat) => {
+		//Query.Each<>() Overload to support 5 components
+		this.entityQuery.Each<PlayerTag, RigidBody, Controller, MovementStat, IsStunned>(scope (entityRef,
+			 tag, rigidBody, controller, movementStat, stun) => {
+				 //early return and input is ignored
+				if(stun.currentlyStunned){
+					rigidBody.SetVelocity(Constants.Vector3_ZERO);
+					return;
+				}
+
 				Vector3 movement = .();
 
 				if(Hush.InputManager.IsKeyDown((EKeyCode)controller.up)){
@@ -67,9 +79,14 @@ public class MovementSytem : GameSystem
 				}
 
 				rigidBody.SetVelocity(movement * movementStat.speed);
-			});
+		});
 	}
 
+
+
+	public void checkStunStatus(){
+
+	}
 	public void OnFixedUpdate(float delta)
 	{
 

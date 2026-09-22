@@ -7,12 +7,15 @@ using System.Collections;
 [RegisterSystem]
 class SpellSystem : GameSystem
 {
+	private const uint8 MAX_SPELL_MESH_COUNT = 2;
+	private const StringView [MAX_SPELL_MESH_COUNT] availableSpells = .("fire_spell.glb", "electric_spell.glb");
 	private Query m_fireSpellsQuery;
 	private Query m_manaQuery;
 	private float m_totalTime;
 	private void* m_scene;
 	private BeefHush.Entity m_renderingSystem;
-	private BeefHush.Entity m_bulletMeshRef;
+	private BeefHush.Entity [MAX_SPELL_MESH_COUNT] m_bulletsMeshRef;
+	private Random m_random;
 	private BeefHush.Entity m_mainCamEntity;
 
 	private HashSet<uint64> m_entitiesToDelete;
@@ -32,12 +35,22 @@ class SpellSystem : GameSystem
 		this.m_fireSpellsQuery.Each<Spell>(scope (entityRef, spell) => {
 			spell.lastFireTime = 0f;
 		});
+		//Kinda redundant, remove if not needed
+		this.m_fireSpellsQuery.EachEntity(scope (entityRef) => {
+			if (entityRef.GetComponent<IsStunned>() == null) {
+				entityRef.AddComponent<IsStunned>();
+			}
+			if (entityRef.GetComponent<Lifetime>() == null) {
+				entityRef.AddComponent<Lifetime>();
+			}
+		});
 
 		builder = .();
 		builder.With<ManaStat>();
 		this.m_manaQuery = builder.Build();
 		this.InitializeMeshes();
 
+		this.m_random = new .();
 		builder = .();
 		builder.With<Camera>();
 
@@ -81,7 +94,6 @@ class SpellSystem : GameSystem
 		});
 	}
 
-
 	public void InitializeMeshes() {
 		const StringView renderSystemName = "RenderingSystem";
 		this.m_renderingSystem = BeefHush.Entity(Scene.CreateEntityWithKey(this.m_scene, (char8*)renderSystemName.ToRawData().Ptr, (uint64)renderSystemName.Length));
@@ -90,15 +102,23 @@ class SpellSystem : GameSystem
 		const StringView path = "res://FireBallPURPLE.glb";
 		uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
 
-		this.m_bulletMeshRef = .(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
-		// Make it invisible, but the MeshReference Component is still there
-		this.m_bulletMeshRef.RemoveComponent<WorldTransform>();
-		this.m_bulletMeshRef.RemoveComponent<LocalTransform>();
+		for(uint64 index = 0; index < MAX_SPELL_MESH_COUNT; index++){
+			uint64 rootEntId = handle.instantiateMeshEntities(&(availableSpells[index][0]), handle.instance);
+
+			this.m_bulletsMeshRef[index] = .(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
+			// Make it invisible, but the MeshReference Component is still there
+			this.m_bulletsMeshRef[index].RemoveComponent<WorldTransform>();
+			this.m_bulletsMeshRef[index].RemoveComponent<LocalTransform>();
+		}
 	}
 
 	public void OnShutdown()
 	{
-		Scene.DestroyEntity(this.m_scene, this.m_bulletMeshRef.InnerEntity());
+		for(uint64 index = 0; index < MAX_SPELL_MESH_COUNT; index++){
+			Scene.DestroyEntity(this.m_scene, this.m_bulletsMeshRef[index].InnerEntity());
+		}
+
+		delete this.m_random;
 	}
 
 	private void ManaSubsystem(float delta) {
@@ -167,9 +187,12 @@ class SpellSystem : GameSystem
 		emitter.emitRate = 0.01f;
 		return rootEntId;
 	}
-	private void SpawnBullet(RigidBody* spellRig, Spell* spell) {
+
+	private void SpawnBullet(BeefHush.Entity* entityRef, RigidBody* spellRig, Spell* spell, Vector3 direction) {
 		const StringView path = "res://decahedron.glb";
-		MakeSpell(path, (int32)EEntityTag.Spell, spellRig.aabb.pos, this.GetShootDirection(spellRig.aabb.pos), spell.projectileSpeed, spell.range);
+
+		castingSubSystem(entityRef, spell, &direction);
+		MakeSpell(path, (int32)EEntityTag.Spell, spellRig.aabb.pos, direction, spell.projectileSpeed, spell.range);
 	}
 
 	public void OnUpdate(float delta)
@@ -180,14 +203,57 @@ class SpellSystem : GameSystem
 			float diff = this.m_totalTime - spell.lastFireTime;
 			// TODO: Make the component decide if this is a mouse button press or something else
 			bool mouseWasPressed = InputManager.GetMouseButtonPressed((EMouseButton)controller.fire);
-			if (mouseWasPressed && diff >= spell.fireRate && manaStat.currentMana >= spell.manaCost) {
+
+			// Default behavior: the player CAN still attack (cast) while stunned.
+			bool canCast = mouseWasPressed && diff >= spell.fireRate && manaStat.currentMana >= spell.manaCost;
+
+			/*
+			   Alternative behavior (uncomment to enable): a stunned player CANNOT
+			   cast at all. Fetch the caster's IsStunned and reject the cast, e.g.:
+			       IsStunned* stun = entityRef.GetComponent<IsStunned>();
+			       canCast = canCast && (stun == null || !stun.currentlyStunned);
+			*/
+
+			if (canCast) {
 				// Add a bullet mesh
 				Console.WriteLine("Fired spell!");
 				manaStat.currentMana -= spell.manaCost;
 				spell.lastFireTime = this.m_totalTime;
-				SpawnBullet(spellRig, spell);
+
+				Vector3 direction = this.GetShootDirection(spellRig.aabb.pos);
+				SpawnBullet(&entityRef, spellRig, spell, direction);
 			}
 		});
+
+	}
+
+	public void castingSubSystem(BeefHush.Entity* entityRef, Spell* spell, Vector3* dir){
+
+		if(spell.type == SpellType.Fire){
+			//.nextdouble apparently returns from 0 to 1, so a range is not needed
+			float roll = (float)this.m_random.NextDouble();
+
+			if(roll < spell.badCastChance){
+				dir.x = - 1;
+			}
+
+		}
+
+		if(spell.type == SpellType.Electric){
+			float roll = (float)this.m_random.NextDouble();
+
+			if(roll < spell.badCastChance){
+				// Self-stun on a bad cast. IsStunned/Lifetime are guaranteed on the
+				// caster (added at startup), but guard anyway in case of misuse.
+				IsStunned* stun = entityRef.GetComponent<IsStunned>();
+				Lifetime* lifetime = entityRef.GetComponent<Lifetime>();
+				if (stun != null && lifetime != null && !stun.currentlyStunned) {
+					lifetime.initialLifetime = 1.0f;
+					lifetime.remaining = 1.0f;
+					stun.currentlyStunned = true;
+				}
+			}
+		}
 
 	}
 

@@ -11,6 +11,7 @@ class LifetimeSystem : GameSystem
 	Query m_lifetimeObjects;
 	Query m_particleQuery;
 
+	
 	public void Init()
 	{
 		this.m_scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
@@ -55,6 +56,7 @@ class LifetimeSystem : GameSystem
 				xform.SetScale(decreaseScaleData.originalScale * t);
 			}
 		});
+
 	}
 
 	public void OnFixedUpdate(float delta)
