@@ -3,16 +3,17 @@ namespace BeefHush;
 using System;
 
 
-enum SpellType{
+enum SpellType : int32 {
 	Fire = 0,
-	Electric =1
+	Electric = 1,
+	MAX
 }
 
 [HushComponent, CRepr]
 struct Spell
 {
 	//Naming is hard
-	public SpellType type;
+	public int32 type;
 	public float fireRate;
 	public float manaCost;
 	public float lastFireTime;

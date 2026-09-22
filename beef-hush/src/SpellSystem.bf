@@ -7,8 +7,9 @@ using System.Collections;
 [RegisterSystem]
 class SpellSystem : GameSystem
 {
-	private const uint8 MAX_SPELL_MESH_COUNT = 2;
-	private const StringView [MAX_SPELL_MESH_COUNT] availableSpells = .("fire_spell.glb", "electric_spell.glb");
+	private const uint8 MAX_SPELL_MESH_COUNT = SpellType.MAX;
+	// NOTE: This should match the Spell's SpellType enum
+	private const StringView [MAX_SPELL_MESH_COUNT] availableSpells = .("res://FireBallPURPLE.glb");
 	private Query m_fireSpellsQuery;
 	private Query m_manaQuery;
 	private float m_totalTime;
@@ -107,8 +108,8 @@ class SpellSystem : GameSystem
 
 			this.m_bulletsMeshRef[index] = .(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
 			// Make it invisible, but the MeshReference Component is still there
-			this.m_bulletsMeshRef[index].RemoveComponent<WorldTransform>();
-			this.m_bulletsMeshRef[index].RemoveComponent<LocalTransform>();
+			// this.m_bulletsMeshRef[index].RemoveComponent<WorldTransform>();
+			this.m_bulletsMeshRef[index].GetComponent<LocalTransform>().SetScale(Constants.EPSILON);
 		}
 	}
 
@@ -131,7 +132,6 @@ class SpellSystem : GameSystem
 	private Vector3 GetShootDirection(Vector3 currPos) {
 		// Get the mouse position in world space
 		Vector2 mouseScreenPos = InputManager.GetMousePosition();
-		Console.WriteLine(scope $"MousePos: {mouseScreenPos}");
 		// Find cam
 		Camera* cam = this.m_mainCamEntity.GetComponent<Camera>();
 		LocalTransform* xform = this.m_mainCamEntity.GetComponent<LocalTransform>();
@@ -139,16 +139,13 @@ class SpellSystem : GameSystem
 		xform.GetTransformationMatrixUnsafe(&(mat[0]), 16);
 		Vector3 direction = .();
 		Vector3 origin = cam.ScreenToWorldPosUnsafe(&(mat[0]), mouseScreenPos, &direction);
-		Console.WriteLine(scope $"Origin: {origin}, Dir: {direction}");
 		Vector3 worldPos = cam.ProjectPlanePosition(origin, direction, 0.0f);
-
-		Console.WriteLine(scope $"World pos: {worldPos}");
 
 		// Then we do dest - source
 		return (worldPos - currPos).normalized();
 	}
 
-	public static uint64 MakeSpell(StringView baseMesh, int32 collIdentifier, Vector3 position, Vector3 direction, float speed, float range) {
+	public static uint64 MakeSpell(Spell* spell, StringView baseMesh, int32 collIdentifier, Vector3 position, Vector3 direction, float speed, float range) {
 		const Vector3 bulletScale = Constants.Vector3_ONE * 30.0f;
 		// Slow path at instancing
 		const StringView renderSystemName = "RenderingSystem";
@@ -156,7 +153,7 @@ class SpellSystem : GameSystem
 		let renderingSystem = BeefHush.Entity(Scene.CreateEntityWithKey(scene, (char8*)renderSystemName.ToRawData().Ptr, (uint64)renderSystemName.Length));
 
 		let handle = renderingSystem.GetComponent<RenderingSystemAPI>();
-		const StringView path = "res://decahedron.glb";
+		StringView path = availableSpells[spell.type];
 		uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
 
 		let bulletRootEntity = BeefHush.Entity(Scene.EntityFromIdUnchecked(scene, rootEntId));
@@ -216,7 +213,6 @@ class SpellSystem : GameSystem
 
 			if (canCast) {
 				// Add a bullet mesh
-				Console.WriteLine("Fired spell!");
 				manaStat.currentMana -= spell.manaCost;
 				spell.lastFireTime = this.m_totalTime;
 
@@ -228,8 +224,7 @@ class SpellSystem : GameSystem
 	}
 
 	public void castingSubSystem(BeefHush.Entity* entityRef, Spell* spell, Vector3* dir){
-
-		if(spell.type == SpellType.Fire){
+		if(spell.type == (int32)SpellType.Fire){
 			//.nextdouble apparently returns from 0 to 1, so a range is not needed
 			float roll = (float)this.m_random.NextDouble();
 
@@ -239,7 +234,7 @@ class SpellSystem : GameSystem
 
 		}
 
-		if(spell.type == SpellType.Electric){
+		if(spell.type == (int32)SpellType.Electric){
 			float roll = (float)this.m_random.NextDouble();
 
 			if(roll < spell.badCastChance){
