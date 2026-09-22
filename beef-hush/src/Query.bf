@@ -77,8 +77,20 @@ public struct Query {
 	public delegate void OnEachCallback<T1, T2>(BeefHush.Entity entityRef, T1* arg1, T2* arg2);
 	public delegate void OnEachCallback<T1, T2, T3>(BeefHush.Entity entityRef, T1* arg1, T2* arg2, T3* arg3);
 	public delegate void OnEachCallback<T1, T2, T3, T4>(BeefHush.Entity entityRef, T1* arg1, T2* arg2, T3* arg3, T4* arg4);
+	public delegate void OnEachCallback<T1, T2, T3, T4, T5>(BeefHush.Entity entityRef, T1* arg1, T2* arg2, T3* arg3, T4* arg4, T5* arg5);
 
 	private RawQuery m_innerQuery;
+
+	// Counts the entities currently matching this query without invoking any
+	// callback. Safe to call before mutating the world.
+	public uint64 Count() {
+		let iterator = this.m_innerQuery.GetIterator();
+		uint64 count = 0;
+		while (iterator.Next()) {
+			count += iterator.Size();
+		}
+		return count;
+	}
 
 	public void EachEntity(delegate void(BeefHush.Entity entityRef) callable) {
 		let iterator = this.m_innerQuery.GetIterator();
@@ -167,8 +179,6 @@ public struct Query {
 			}
 		}
 	}
-
-	public delegate void OnEachCallback<T1, T2, T3, T4, T5>(BeefHush.Entity entityRef, T1* arg1, T2* arg2, T3* arg3, T4* arg4, T5* arg5);
 
 	public void Each<T1, T2, T3, T4, T5>(OnEachCallback<T1, T2, T3, T4, T5> callable) {
 		let iterator = this.m_innerQuery.GetIterator();

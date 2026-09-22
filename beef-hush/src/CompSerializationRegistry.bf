@@ -19,6 +19,8 @@ public enum ECompPropertyType : int32
 	Bool,
 	String,
 	Array,
+	Vector3,
+	Vector2
 }
 
 [CRepr]
@@ -86,24 +88,36 @@ struct CompSerializationRegistryAttribute : Attribute, IComptimeTypeApply
 		return false;
 	}
 
+	static String s_typeBuffer = new String(64) ~ delete _;
+
 	[Comptime]
-	private static StringView MapTypeCode(TypeCode typeCode)
+	private static StringView MapTypeCode(TypeDeclaration typeCode)
 	{
 		// TODO: This should counsult Hush's reflection DB at runtime if unknown
-		switch (typeCode)
+		switch (typeCode.TypeCode)
 		{
 		case .Int8:     return ".I8";
 		case .UInt8:    return ".U8";
 		case .Int16:    return ".I16";
 		case .UInt16:   return ".U16";
 		case .Int32:    return ".I32";
+		case .Int:      return ".I32"; // Assume default int is 32 bits
 		case .UInt32:   return ".U32";
 		case .Int64:    return ".I64";
 		case .UInt64:   return ".U64";
 		case .Float:    return ".F32";
 		case .Double:   return ".F64";
 		case .Boolean:  return ".Bool";
-		default:        return ".Unknown";
+		default:
+			s_typeBuffer.Clear();
+			s_typeBuffer.Append(".");
+			typeCode.GetName(s_typeBuffer);
+			for (let name in Enum.GetNames(typeof(ECompPropertyType))) {
+				if (name == s_typeBuffer.Substring(1)) {
+					return s_typeBuffer;
+				}
+			}
+			return ".Unknown";
 		}
 	}
 
@@ -168,7 +182,7 @@ struct CompSerializationRegistryAttribute : Attribute, IComptimeTypeApply
 				}
 				else
 				{
-					StringView variant = MapTypeCode(ft.TypeDeclaration.TypeCode);
+					StringView variant = MapTypeCode(ft.TypeDeclaration);
 					propLines.AppendF($"    .(\"{fname}\", {variant}, 0, 0, offsetof({typeNameBuff}, {fname})),\n");
 				}
 				propCount++;

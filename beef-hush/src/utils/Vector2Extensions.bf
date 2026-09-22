@@ -149,5 +149,10 @@ extension Vector2 {
 	public static float degrees_to_radians(float angle){
 		return (angle * (Constants.PI / 180.0f));
 	}
+
+	public override void ToString(System.String strBuffer)
+	{
+		strBuffer.Append(scope $"({this.x}, {this.y})");
+	}
 }
 

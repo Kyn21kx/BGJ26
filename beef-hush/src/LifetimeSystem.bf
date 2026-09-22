@@ -2,6 +2,7 @@ namespace BeefHush;
 
 using Hush;
 using System;
+using System.Collections;
 
 [RegisterSystem]
 class LifetimeSystem : GameSystem
@@ -25,6 +26,8 @@ class LifetimeSystem : GameSystem
 
 		builder = .();
 		builder.With<Lifetime>();
+		builder.With<DecreaseScaleData>();
+		builder.With<LocalTransform>();
 		builder.With<ParticleTag>();
 		this.m_particleObjects = builder.Build();
 
@@ -42,28 +45,29 @@ class LifetimeSystem : GameSystem
 
 	public void OnUpdate(float delta)
 	{
-		this.m_spellObjects.Each<Lifetime, Spell>(scope (entityRef, lifetime, spell) => {
+		// Collect expired entities first: destroying inside the Each swap-removes
+		// rows from the table mid-iteration and shifts the remaining rows.
+		List<Hush.Entity> expiredEntities = scope List<Hush.Entity>();
+
+		this.m_lifetimeObjects.Each<Lifetime>(scope (entityRef, lifetime) => {
 			lifetime.remaining -= delta;
 			if (lifetime.remaining <= 0f) {
 				var entityRef; // UX: Stupid copy
-				Scene.DestroyEntity(this.m_scene, entityRef.InnerEntity());
+				expiredEntities.Add(*entityRef.InnerEntity());
 			}
 		});
 
-		this.m_particleObjects.Each<Lifetime, LocalTransform>(scope (entityRef, lifetime, xform) => {
-			lifetime.remaining -= delta;
+		for (var entity in expiredEntities) {
+			Scene.DestroyEntity(this.m_scene, &entity);
+		}
+
+		this.m_particleQuery.Each<Lifetime, DecreaseScaleData, LocalTransform>(scope (entityRef, lifetime, decreaseScaleData, xform) => {
 			if (lifetime.initialLifetime > 0f) {
 				float t = lifetime.remaining / lifetime.initialLifetime;
-				xform.SetScale(Constants.Vector3_ONE * t);
+				xform.SetScale(decreaseScaleData.originalScale * t);
 			}
 		});
 
-		this.m_stunnedObjects.Each<Lifetime, IsStunned>(scope (entityRef, lifetime, stun) => {
-			lifetime.remaining -= delta;
-			if(lifetime.remaining <= 0f){
-				stun.currentlyStunned = false;
-			}
-		});
 	}
 
 	public void OnFixedUpdate(float delta)

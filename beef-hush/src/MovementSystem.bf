@@ -4,7 +4,7 @@ using Hush;
 using System;
 
 [RegisterSystem]
-public class MovementSsytem : GameSystem
+public class MovementSytem : GameSystem
 {
 
 	// Fixing player scale at runtime, lol
@@ -17,22 +17,25 @@ public class MovementSsytem : GameSystem
 	{
 		Console.WriteLine("Movement system was initialized!");
 		QueryBuilder builder = .();
-		builder.With<PlayerTag>();
-		builder.With<RigidBody>();
+		EntityRegistry.s_PlayerTag = builder.With<PlayerTag>();
+		EntityRegistry.s_Rig = builder.With<RigidBody>();
 		builder.With<Controller>();
 		builder.With<MovementStat>();
 		builder.With<IsStunned>();
 		this.entityQuery = builder.Build();
 
 		this.entityQuery.EachEntity(scope (entityRef) => {
-			if (entityRef.GetComponent<IsStunned>() == null) {
-				entityRef.AddComponent<IsStunned>();
-			}
+			// TODO: Maybe we need to restore this, but maybe we don't lol
+			// if (entityRef.GetComponent<IsStunned>() == null) {
+			// 	entityRef.AddComponent<IsStunned>();
+			// }
 
+			WorldTransform* globalXform = entityRef.GetComponent<WorldTransform>();
 			LocalTransform* xform = entityRef.GetComponent<LocalTransform>();
 			RigidBody* rig = entityRef.GetComponent<RigidBody>();
 			*rig = .();
-			xform.SetScale(PLAYER_SCALE);
+			Vector3 scale = globalXform.GetScale();
+			xform.SetScale(scale);
 			rig.aabb.pos = xform.GetPositionValue();
 		});
 
@@ -75,7 +78,7 @@ public class MovementSsytem : GameSystem
 					movement = movement.normalized();
 				}
 
-				 rigidBody.SetVelocity(movement * movementStat.speed);
+				rigidBody.SetVelocity(movement * movementStat.speed);
 		});
 	}
 

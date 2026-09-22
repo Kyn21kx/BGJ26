@@ -5,6 +5,7 @@ using System;
 
 [HushComponent, CRepr]
 struct ParticleEmitter {
+	public Vector3 velocity;
 	public int32 maxParticles;
 	public int32 currentParticleCount;
 
@@ -15,4 +16,5 @@ struct ParticleEmitter {
 	public float particleLifeTime;
 	public float minScale;
 	public float maxScale;
+	public float emitRadius;
 }

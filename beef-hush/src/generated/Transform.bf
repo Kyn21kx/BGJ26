@@ -8,6 +8,22 @@ public struct Transform {
 	public char8[16] m_member2;
 	public char8[1] m_member3;
 
+	public Matrix4 InvXForm(Transform* other) {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__InvXForm(&this, other);
+	}
+
+	public Matrix4 XForm(Transform* other) {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__XForm(&this, other);
+	}
+
+	public void GetTransformationMatrixUnsafe(float* outMatrix, uint64 count) {
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetTransformationMatrixUnsafe(&this, outMatrix, count);
+	}
+
+	public Matrix4 GetTransformationMatrix() {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetTransformationMatrix(&this);
+	}
+
 	public Vector3 Right() {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__Right(&this);
 	}
@@ -26,6 +42,18 @@ public struct Transform {
 
 	public void SetEulerAngles(Vector3* euler) {
 		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__SetEulerAngles(&this, euler);
+	}
+
+	public Quat GetRotationQuat() {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetRotationQuat(&this);
+	}
+
+	public void SetRotationQuat(Quat* rotationQuat) {
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__SetRotationQuat(&this, rotationQuat);
+	}
+
+	public Vector3 GetScale() {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Transform__GetScale(&this);
 	}
 
 	public void SetScale(Vector3 scale) {
