@@ -103,13 +103,14 @@ class SpellSystem : GameSystem
 		const StringView path = "res://FireBallPURPLE.glb";
 		uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
 
-		for(uint64 index = 0; index < MAX_SPELL_MESH_COUNT; index++){
+		for(uint64 index = 0; index < MAX_SPELL_MESH_COUNT; index++) {
 			uint64 rootEntId = handle.instantiateMeshEntities(&(availableSpells[index][0]), handle.instance);
 
 			this.m_bulletsMeshRef[index] = .(Scene.EntityFromIdUnchecked(this.m_scene, rootEntId));
 			// Make it invisible, but the MeshReference Component is still there
-			// this.m_bulletsMeshRef[index].RemoveComponent<WorldTransform>();
-			this.m_bulletsMeshRef[index].GetComponent<LocalTransform>().SetScale(Constants.Vector3_ONE * Constants.EPSILON);
+			// this.m_bulletsMeshRef[index].AddComponent<WorldTransform>();
+			// var localXform = this.m_bulletsMeshRef[index].AddComponent<LocalTransform>();
+			// localXform.SetScale(Constants.Vector3_ONE * Constants.EPSILON);
 		}
 	}
 
@@ -145,27 +146,37 @@ class SpellSystem : GameSystem
 		return (worldPos - currPos).normalized();
 	}
 
-	public static uint64 MakeSpell(SpellType type, int32 collIdentifier, Vector3 position, Vector3 direction, float speed, float range) {
-		const Vector3 bulletScale = Constants.Vector3_ONE * 30.0f;
+	public static uint64 MakeSpell(SpellType type, float size, int32 collIdentifier, Vector3 position, Vector3 direction, float speed, float range) {
 		// Slow path at instancing
 		const StringView renderSystemName = "RenderingSystem";
 		void* scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
 		let renderingSystem = BeefHush.Entity(Scene.CreateEntityWithKey(scene, (char8*)renderSystemName.ToRawData().Ptr, (uint64)renderSystemName.Length));
 
+		// TODO: Use the entity registry to fetch this, bc this performs a string hash
 		let handle = renderingSystem.GetComponent<RenderingSystemAPI>();
 		StringView path = availableSpells[(int32)type];
 		uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
 
 		let bulletRootEntity = BeefHush.Entity(Scene.EntityFromIdUnchecked(scene, rootEntId));
 		var bulletXform = bulletRootEntity.GetComponent<LocalTransform>();
-		bulletXform.SetScale(bulletScale);
+		var bulletWorldXform = bulletRootEntity.GetComponent<WorldTransform>();
+		bulletXform.SetScale(Constants.Vector3_ONE * size);
+		// Ensure the projectile faces the correct direction
+		Vector3 vecRotTarget = position + direction;
+		vecRotTarget.y = 0f;
+		Vector3 newEuler = Vector3.LookRotationEulerYawOnly(vecRotTarget, position, Constants.Vector3_UP);
+		bulletXform.SetEulerAngles(&newEuler);
+		// Quat rot = Quat.IDENTITY;
+		// bulletXform.SetRotationQuat(&rot);
+		// bulletWorldXform.SetRotationQuat(&rot);
+		Console.WriteLine(scope $"Xform rot: {bulletXform.GetEulerAngles()}, Global Xform {bulletXform.GetEulerAngles()}");
 		let collider = bulletRootEntity.AddComponent<Collider>();
 		collider.identifierTag = collIdentifier;
 		RigidBody* rig = bulletRootEntity.AddComponent<RigidBody>();
 		*rig = .(); // Set default vals
 		rig.aabb.pos = position; // + The direction offset
 		rig.SetVelocity(direction * speed);
-		rig.SetAngularVelocity(direction * speed * 1.5f);
+		// rig.SetAngularVelocity(direction * speed * 1.5f);
 		Lifetime* bulletLifetime = bulletRootEntity.AddComponent<Lifetime>();
 		// t = d / V
 		bulletLifetime.remaining = range / speed;
@@ -189,7 +200,7 @@ class SpellSystem : GameSystem
 		const StringView path = "res://decahedron.glb";
 
 		castingSubSystem(entityRef, spell, &direction);
-		MakeSpell((SpellType)spell.type, (int32)EEntityTag.Spell, spellRig.aabb.pos, direction, spell.projectileSpeed, spell.range);
+		MakeSpell((SpellType)spell.type, spell.projectileSize, (int32)EEntityTag.Spell, spellRig.aabb.pos, direction, spell.projectileSpeed, spell.range);
 	}
 
 	public void OnUpdate(float delta)
@@ -229,7 +240,7 @@ class SpellSystem : GameSystem
 			float roll = (float)this.m_random.NextDouble();
 
 			if(roll < spell.badCastChance){
-				dir.x = - 1;
+				(*dir) *= -1;
 			}
 
 		}

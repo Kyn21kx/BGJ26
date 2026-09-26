@@ -16,6 +16,15 @@ public class SmallSystem : GameSystem {
 		builder.With<PlayerTag>();
 		builder.With<Controller>();
 		this.m_entityQuery = builder.Build();
+
+		const StringView renderSystemName = "RenderingSystem";
+		void* scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
+		let renderingSystem = BeefHush.Entity(Scene.CreateEntityWithKey(scene, (char8*)renderSystemName.ToRawData().Ptr, (uint64)renderSystemName.Length));
+
+		// TODO: Use the entity registry to fetch this, bc this performs a string hash
+		let handle = renderingSystem.GetComponent<RenderingSystemAPI>();
+		StringView path = "res://FireBallPURPLE.glb";
+		uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
 	}
 
 	/// OnShutdown() is called when the system is shutting down.

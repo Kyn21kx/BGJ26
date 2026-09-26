@@ -19,7 +19,7 @@ struct Spell
 	public float lastFireTime;
 	public float projectileSpeed;
 	public float range;
-	public uint64 spellAssetId;
 	//NOTE: This value must be normalized, it won't be checked during run time :)
 	public float badCastChance;
+	public float projectileSize;
 }

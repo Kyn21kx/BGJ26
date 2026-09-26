@@ -21,7 +21,6 @@ public class MovementSytem : GameSystem
 		EntityRegistry.s_Rig = builder.With<RigidBody>();
 		builder.With<Controller>();
 		builder.With<MovementStat>();
-		builder.With<IsStunned>();
 		this.entityQuery = builder.Build();
 
 		this.entityQuery.EachEntity(scope (entityRef) => {
@@ -48,13 +47,13 @@ public class MovementSytem : GameSystem
 
 	public void OnUpdate(float delta){
 		//Query.Each<>() Overload to support 5 components
-		this.entityQuery.Each<PlayerTag, RigidBody, Controller, MovementStat, IsStunned>(scope (entityRef,
-			 tag, rigidBody, controller, movementStat, stun) => {
+		this.entityQuery.Each<PlayerTag, RigidBody, Controller, MovementStat>(scope (entityRef,
+			 tag, rigidBody, controller, movementStat) => {
 				 //early return and input is ignored
-				if(stun.currentlyStunned){
-					rigidBody.SetVelocity(Constants.Vector3_ZERO);
-					return;
-				}
+				// if(stun.currentlyStunned){
+				// 	rigidBody.SetVelocity(Constants.Vector3_ZERO);
+				// 	return;
+				// }
 
 				Vector3 movement = .();
 

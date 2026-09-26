@@ -3,6 +3,7 @@ namespace Hush;
 using System;
 
 extension Vector2 {
+	const Vector2 ZERO = .(0, 0);
 
 	public this(float x, float y){
 		 this.x = x;
@@ -39,7 +40,7 @@ extension Vector2 {
 		if (System.Math.Abs(divisor.x) < Constants.EPSILON ||
 			System.Math.Abs(divisor.y) < Constants.EPSILON
 			){
-				return Constants.Vector2_ZERO;
+				return Vector2.ZERO;
 			}
 
 		return .(dividend.x / divisor.x,
@@ -104,7 +105,7 @@ extension Vector2 {
 		return ((x * x) + (y * y));
 	}
 
-	public Vector2 normalize(float epsilon = Constants.EPSILON, Vector2 zero_guard = Constants.Vector2_ZERO){
+	public Vector2 normalize(float epsilon = Constants.EPSILON, Vector2 zero_guard = Vector2.ZERO){
 		float length = this.length();
 		if(length < epsilon){
 			return zero_guard;
