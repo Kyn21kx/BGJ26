@@ -79,7 +79,7 @@ public class NPCSystem : GameSystem {
 		Vector3 fwd = target - source;
 
 		if (fwd.length() < 0.0001f) {
-			return Constants.Vector3_ZERO;
+			return Vector3.ZERO;
 		}
 
 		fwd = fwd.normalized();
@@ -179,7 +179,7 @@ public class NPCSystem : GameSystem {
 		// Prepare attack
 		agent.state = .AttackPreparing;
 		enemy.actionTimeRemaining = enemy.attackPrepareTime;
-		rig.SetVelocity(Constants.Vector3_ZERO);
+		rig.SetVelocity(Vector3.ZERO);
 
 		// Add animation component
 		EAttackType attackType = (EAttackType)enemy.attackType;
@@ -256,7 +256,7 @@ public class NPCSystem : GameSystem {
 		// Stay here if preparing, go and execute the attack if the enum says so
 		enemy.actionTimeRemaining -= delta;
 		if (agent.state == .AttackPreparing) {
-			rig.SetVelocity(Constants.Vector3_ZERO);
+			rig.SetVelocity(Vector3.ZERO);
 			if (enemy.actionTimeRemaining <= 0f) {
 				enemy.actionTimeRemaining = ATTACK_EXECUTE_TIME;
 				agent.state = .AttackExecuting;
@@ -315,7 +315,7 @@ public class NPCSystem : GameSystem {
 		}
 
 		if (agent.state == .SearchingPath) {
-			rig.SetVelocity(Constants.Vector3_ZERO);
+			rig.SetVelocity(Vector3.ZERO);
 			// Rotate forward vector in XZ plane to avoid euler angle ambiguity
 			float rotSign = agent.normalFaceOfHit.x != 0f ? Math.Sign(agent.normalFaceOfHit.x) : Math.Sign(agent.normalFaceOfHit.z);
 			if (rotSign == 0f) rotSign = 1f;
@@ -393,7 +393,7 @@ public class NPCSystem : GameSystem {
 
 	private void SensorSystem(float delta, BeefHush.Entity* entityRef, NavAgent* agent, RigidBody* rig, LocalTransform* xform) {
 		// Query the spatial grid with a higher depth to check if the player is here
-		if (agent.targetDirection == Constants.Vector3_ZERO) {
+		if (agent.targetDirection == Vector3.ZERO) {
 			agent.targetDirection = Constants.Vector3_RIGHT;
 		}
 

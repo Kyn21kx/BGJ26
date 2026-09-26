@@ -166,17 +166,12 @@ class SpellSystem : GameSystem
 		vecRotTarget.y = 0f;
 		Vector3 newEuler = Vector3.LookRotationEulerYawOnly(vecRotTarget, position, Constants.Vector3_UP);
 		bulletXform.SetEulerAngles(&newEuler);
-		// Quat rot = Quat.IDENTITY;
-		// bulletXform.SetRotationQuat(&rot);
-		// bulletWorldXform.SetRotationQuat(&rot);
-		Console.WriteLine(scope $"Xform rot: {bulletXform.GetEulerAngles()}, Global Xform {bulletXform.GetEulerAngles()}");
 		let collider = bulletRootEntity.AddComponent<Collider>();
 		collider.identifierTag = collIdentifier;
 		RigidBody* rig = bulletRootEntity.AddComponent<RigidBody>();
 		*rig = .(); // Set default vals
 		rig.aabb.pos = position; // + The direction offset
 		rig.SetVelocity(direction * speed);
-		// rig.SetAngularVelocity(direction * speed * 1.5f);
 		Lifetime* bulletLifetime = bulletRootEntity.AddComponent<Lifetime>();
 		// t = d / V
 		bulletLifetime.remaining = range / speed;

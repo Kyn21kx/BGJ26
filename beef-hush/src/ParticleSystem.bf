@@ -115,7 +115,7 @@ class ParticleSystem : GameSystem
 
 		Vector3 pos = RandomizePosition(basePos, emitter.emitRadius);
 		localxForm.SetPosition(pos);
-		if (emitter.velocity == Constants.Vector3_ZERO) return;
+		if (emitter.velocity == Vector3.ZERO) return;
 		// Add a physics comp
 		RigidBody* rig = particle.AddComponent<RigidBody>();
 		(*rig) = .();
