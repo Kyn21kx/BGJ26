@@ -80,6 +80,10 @@ public class HealthSystem : GameSystem {
 				health.value -= tickDamage;
 				currEffect.remainingDamage -= tickDamage;
 				// Send our camera shake or something
+				if (entityRef.HasComponent(EntityRegistry.s_PlayerTag)) {
+					const float DMG_TRAUMA = 0.4f;
+					CameraSystem.SendShake(DMG_TRAUMA);	
+				}
 			}
 		});
 	}

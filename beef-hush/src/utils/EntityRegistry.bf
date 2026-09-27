@@ -6,6 +6,8 @@ using System;
 
 static class EntityRegistry {
 
+	// TODO: Introduce a small cache here
+
 	public static uint64 s_PlayerTag = 0;
 	public static uint64 s_MainCam = 0;
 	public static uint64 s_Enemy = 0;

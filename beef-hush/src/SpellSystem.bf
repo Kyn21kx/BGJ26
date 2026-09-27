@@ -263,7 +263,7 @@ class SpellSystem : GameSystem
 
 	public void OnPostRender()
 	{
-		// Workaround
+		// TODO: Change this workaround for QueueDestroy
 		for (uint64 ent in this.m_entitiesToDelete) {
 			var ent = Scene.EntityFromIdUnchecked(this.m_scene, ent);
 			Scene.DestroyEntity(this.m_scene, &ent);
