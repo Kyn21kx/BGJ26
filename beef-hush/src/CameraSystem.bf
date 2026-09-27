@@ -2,6 +2,7 @@ namespace BeefHush;
 
 using Hush;
 using System;
+using System.Diagnostics;
 
 [RegisterSystem]
 class CameraSystem : GameSystem
@@ -20,10 +21,15 @@ class CameraSystem : GameSystem
 	BeefHush.Entity m_camEntity;
 	Vector3 m_currentPos;
 
+	float m_ellapsed;
+
+	private static CameraSystem s_instance = null;
+
 	public void Init()
 	{
+		s_instance = this;
 		QueryBuilder builder = .();
-		builder.With<MainCamTag>();
+		EntityRegistry.s_MainCam = builder.With<MainCamTag>();
 		builder.With<LocalTransform>();
 		this.m_mainCamQuery = builder.Build();
 
@@ -42,10 +48,19 @@ class CameraSystem : GameSystem
 		});
 	}
 
+	public static void SendShake(float trauma) {
+		// offset = maxOffset * shake * perlin()
+		Debug.Assert(s_instance != null, "Camera System is not initialized and a shake was attempted!");
+		Debug.Assert(s_instance.m_camEntity.IsValid, "Main Camera has not been set!");
+		var mainCamComp = s_instance.m_camEntity.GetComponent<MainCamTag>(EntityRegistry.s_MainCam);
+		mainCamComp.SetTrauma(mainCamComp.trauma + trauma);
+	}
+
 	public void OnShutdown() {}
 
 	public void OnUpdate(float delta)
 	{
+		this.m_ellapsed += delta;
 		// Pass 1: centroid of all players on the XZ plane
 		float cx = 0f, cz = 0f;
 		int playerCount = 0;
@@ -79,10 +94,36 @@ class CameraSystem : GameSystem
 			Vector3 targetPos = .(cx, height, cz + zOffset);
 
 			this.m_currentPos = this.m_currentPos.Lerp(targetPos, Math.Min(mainCam.followSpeed * delta, 1f));
+			// Add shake if needed
+			if (mainCam.trauma > 0f) {
+				float t = this.m_ellapsed * mainCam.noiseSpeed;
+
+				let rotationNoise = MathUtils.GeneratePerlineNoise(t + 0f);
+			    let xNoise = MathUtils.GeneratePerlineNoise(t + 100.0f);
+			    let yNoise = MathUtils.GeneratePerlineNoise(t + 200.0f);				
+
+				float shake = Math.Pow(mainCam.trauma, MainCamTag.TRAUMA_EXP);
+				
+			    // let rollOffset = rotationNoise * shake * mainCam.maxAngle;
+			    let xOffset = xNoise * shake * mainCam.maxTranslation;
+			    let yOffset = yNoise * shake * mainCam.maxTranslation;
+
+				Vector3 pos = this.m_currentPos;
+				// Vector3 euler = xform.GetEulerAngles();
+
+				pos.x += xOffset;
+				pos.z += yOffset;
+				// euler.z += rollOffset;
+
+				xform.SetPosition(pos);
+				// xform.SetEulerAngles(&euler);
+
+				mainCam.SetTrauma(mainCam.trauma - (mainCam.traumaDecayPerSecond * delta));
+				return;
+			}
 
 			xform.SetPosition(this.m_currentPos);
 		});
-
 	}
 
 	public void OnFixedUpdate(float delta) {}

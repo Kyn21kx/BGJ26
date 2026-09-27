@@ -11,6 +11,8 @@ public struct Entity { //: BindingCompletenessCheck<Hush.Entity, Entity> {
 
 	public int32 ChildCount => this.m_innerEntity.GetChildCount();
 
+	public bool IsValid => this.Id != 0;
+
 	private const int MAX_COMP_NAME = 64;
 
 	public this() {

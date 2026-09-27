@@ -36,16 +36,6 @@ class SpellSystem : GameSystem
 		this.m_fireSpellsQuery.Each<Spell>(scope (entityRef, spell) => {
 			spell.lastFireTime = 0f;
 		});
-		//Kinda redundant, remove if not needed
-		this.m_fireSpellsQuery.EachEntity(scope (entityRef) => {
-			if (entityRef.GetComponent<IsStunned>() == null) {
-				entityRef.AddComponent<IsStunned>();
-			}
-			if (entityRef.GetComponent<Lifetime>() == null) {
-				entityRef.AddComponent<Lifetime>();
-			}
-		});
-
 		builder = .();
 		builder.With<ManaStat>();
 		this.m_manaQuery = builder.Build();
@@ -230,29 +220,27 @@ class SpellSystem : GameSystem
 	}
 
 	public void castingSubSystem(BeefHush.Entity* entityRef, Spell* spell, Vector3* dir){
+		float roll = (float)this.m_random.NextDouble();
+		if (roll >= spell.badCastChance) {
+			return;
+		}
+
+		const float BAD_CAST_SHAKE_STRENGTH = 0.1f;
+		CameraSystem.SendShake(BAD_CAST_SHAKE_STRENGTH);
+
 		if(spell.type == (int32)SpellType.Fire){
-			//.nextdouble apparently returns from 0 to 1, so a range is not needed
-			float roll = (float)this.m_random.NextDouble();
-
-			if(roll < spell.badCastChance){
-				(*dir) *= -1;
-			}
-
+			(*dir) *= -1;
 		}
 
 		if(spell.type == (int32)SpellType.Electric){
-			float roll = (float)this.m_random.NextDouble();
-
-			if(roll < spell.badCastChance){
-				// Self-stun on a bad cast. IsStunned/Lifetime are guaranteed on the
-				// caster (added at startup), but guard anyway in case of misuse.
-				IsStunned* stun = entityRef.GetComponent<IsStunned>();
-				Lifetime* lifetime = entityRef.GetComponent<Lifetime>();
-				if (stun != null && lifetime != null && !stun.currentlyStunned) {
-					lifetime.initialLifetime = 1.0f;
-					lifetime.remaining = 1.0f;
-					stun.currentlyStunned = true;
-				}
+			// Self-stun on a bad cast. IsStunned/Lifetime are guaranteed on the
+			// caster (added at startup), but guard anyway in case of misuse.
+			IsStunned* stun = entityRef.GetComponent<IsStunned>();
+			Lifetime* lifetime = entityRef.GetComponent<Lifetime>();
+			if (stun != null && lifetime != null && !stun.currentlyStunned) {
+				lifetime.initialLifetime = 1.0f;
+				lifetime.remaining = 1.0f;
+				stun.currentlyStunned = true;
 			}
 		}
 
