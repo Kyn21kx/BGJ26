@@ -143,19 +143,55 @@ public class EngineDependencies {
 
 	private Hush.HushFuncPtrTable* m_functionPtrTable;
 	private void* m_engine;
+	private uint64 m_handle; // Our own module's handle
 
-	public void Provision(Hush.HushFuncPtrTable* table, void* engine) {
+	public void Provision(Hush.HushFuncPtrTable* table, void* engine, uint64 handle) {
 		this.m_functionPtrTable = table;
 		this.m_engine = engine;
 	}
 
 }
 
+// Contract with HushModuleAbi.h
+public enum HushModuleResult {
+	Ok,
+	AbiVersionMismatch,
+	RegistrationFailed,
+	ManagedException,
+	Panic,
+	UnknownError,
+}
+
+[CRepr]
+public struct HushModuleContext
+{
+	/// Size of this struct, used for versioning.
+	public uint32 structSize;
+	/// ABI version of the engine that loads the module.
+	public uint32 abiVersion;
+	/// Opaque engine handle. Foreign modules pass it back to the generated
+	/// Hush API, they must not dereference it.
+	public void *engine;
+	/// Handle of this module, created by the engine before calling the entry
+	/// point. Every type the module registers is owned by this handle.
+	public uint64 module;
+	/// Generated Hush API function table.
+	public Hush.HushFuncPtrTable *hushApi;
+	/// Engine internal data for native C++ modules. Foreign language modules
+	/// must ignore this field.
+	public void *hostData;
+}
+
 public static class Exports {
 
 	[Export, CLink]
-	public static void StartScriptingConnection(Hush.HushFuncPtrTable* table, void* engine) {
-		EngineDependencies.Instance.Provision(table, engine);
+	public static int32 HushRegisterModule(HushModuleContext* context) {
+		if (context.structSize != sizeof(HushModuleContext)) {
+			return (int32)HushModuleResult.AbiVersionMismatch;
+		}
+		// TODO: ABI check on the bindings
+		EngineDependencies.Instance.Provision(context.hushApi, context.engine, context.module);
+		return (int32)HushModuleResult.Ok;
 	}
 
 	[Export, CLink]

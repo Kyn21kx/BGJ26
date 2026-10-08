@@ -46,14 +46,8 @@ public class MovementSytem : GameSystem
 	}
 
 	public void OnUpdate(float delta){
-		//Query.Each<>() Overload to support 5 components
 		this.entityQuery.Each<PlayerTag, RigidBody, Controller, MovementStat>(scope (entityRef,
 			 tag, rigidBody, controller, movementStat) => {
-				 //early return and input is ignored
-				// if(stun.currentlyStunned){
-				// 	rigidBody.SetVelocity(Constants.Vector3_ZERO);
-				// 	return;
-				// }
 
 				Vector3 movement = .();
 
