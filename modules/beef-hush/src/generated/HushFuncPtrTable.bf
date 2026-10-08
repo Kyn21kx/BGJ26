@@ -3,6 +3,10 @@ using System;
 
 [CRepr]
 public struct HushFuncPtrTable {
+	public function void(Reflection.TypeInfo* self,char8* ,uint64 nameSize) HushFuncPtr_Hush__Reflection__TypeInfo__SetName;
+	public function void(Reflection.TypeInfo* self,uint64) HushFuncPtr_Hush__Reflection__TypeInfo__SetSize;
+	public function void(Reflection.TypeInfo* self,uint64) HushFuncPtr_Hush__Reflection__TypeInfo__SetAlignment;
+	public function uint8(void* self,char8* ,uint64 nameSize,uint64 ,uint64 ,uint64) HushFuncPtr_Hush__Reflection__ReflectionDB__RegisterForeignClass;
 	public function uint64(Entity* self,ComponentTraits.ComponentInfo*) HushFuncPtr_Hush__Entity__RegisterComponentRaw;
 	public function void*(Entity* self,uint64) HushFuncPtr_Hush__Entity__AddComponentRaw;
 	public function void*(Entity* self,uint64) HushFuncPtr_Hush__Entity__GetComponentRaw;
@@ -46,6 +50,16 @@ public struct HushFuncPtrTable {
 	public function RawQuery(void* self,uint64* ,uint64 componentsSize,RawQuery.ECacheMode) HushFuncPtr_Hush__Scene__CreateRawQuery;
 	public function void*(void* self) HushFuncPtr_Hush__HushEngine__GetScene;
 	public function HushEngine.EError(void* self,void*) HushFuncPtr_Hush__HushEngine__LoadScene;
+	public function bool(void* ,uint64 ,void*) HushFuncPtr_Hush__Modules__SetForeignSystemRuntimeOps;
+	public function bool(void* ,uint64 ,void*) HushFuncPtr_Hush__Modules__RegisterForeignSystem;
+	public function bool(void* ,void* ,uint64 ,uint64) HushFuncPtr_Hush__Modules__AddSystemToScene;
+	public function bool(void* ,uint64) HushFuncPtr_Hush__Modules__HasReflectedType;
+	public function bool(void* ,uint64 ,uint64*) HushFuncPtr_Hush__Modules__GetReflectedTypeOwner;
+	public function uint32(void* ,uint64) HushFuncPtr_Hush__Modules__GetReflectedTypeNameLength;
+	public function bool(void* ,uint64 ,char8* ,uint32) HushFuncPtr_Hush__Modules__CopyReflectedTypeName;
+	public function bool(void* ,uint64 ,char8* ,uint64) HushFuncPtr_Hush__Modules__HasReflectedTypeMetadata;
+	public function uint32(void* ,uint64 ,char8* ,uint64) HushFuncPtr_Hush__Modules__GetReflectedTypeMetadataValueLength;
+	public function bool(void* ,uint64 ,char8* ,uint64 ,char8* ,uint32) HushFuncPtr_Hush__Modules__CopyReflectedTypeMetadataValue;
 	public function void(Transform* self,Vector3) HushFuncPtr_Hush__Transform__SetPosition;
 	public function Vector3*(Transform* self) HushFuncPtr_Hush__Transform__GetPosition;
 	public function Vector3(Transform* self) HushFuncPtr_Hush__Transform__GetPositionValue;
