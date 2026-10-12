@@ -61,6 +61,11 @@ struct RegistryAttribute : Attribute, IComptimeTypeApply
         // Bake count as a compile-time constant
         code.AppendF($"public const int Count = {count};\n");
 
+		String lookupBuffer = scope .();
+		String lookupByTypeIdBuffer = scope .();
+		lookupByTypeIdBuffer.Append($"public static readonly Dictionary<uint64, int> TypeIdToIndexMap = new .()");
+		lookupByTypeIdBuffer.Append("{");
+
         // Bake each RegTypeInfo as a named const field
         for (int i < count)
         {
@@ -70,11 +75,16 @@ struct RegistryAttribute : Attribute, IComptimeTypeApply
             // Emit a fixed char array initializer matching RegTypeInfo.name layout
             code.AppendF($"public static readonly RegTypeInfo Entry{i} = ");
             code.AppendF($".(\"{name}\", {i}, sizeof({typeNameBuff}), alignof({typeNameBuff}));\n");
+			uint64 hash = Exports.HashFnv1a64CompTime(name);
+			lookupByTypeIdBuffer.AppendF($"({hash}, {i}),");
         }
+
+		lookupByTypeIdBuffer.Append("} ~ delete _;\n");
 		
         // Emit a flat array of all infos for bulk access
 		String flatArrayBuffer = scope .();
-		String lookupBuffer = scope .();
+
+
 		flatArrayBuffer.Append($"public static readonly RegTypeInfo[Count] All = .(\n");
         lookupBuffer.Append($"public static readonly Type[Count] TypeLookup = .(\n");
         for (int i < count)
@@ -89,6 +99,7 @@ struct RegistryAttribute : Attribute, IComptimeTypeApply
 
 		code.Append(flatArrayBuffer);
 		code.Append(lookupBuffer);
+		code.Append(lookupByTypeIdBuffer);
 
 		code.Append("[Export]\n");
 		code.Append("public static void __ForceInclude()\n{\n");
@@ -192,7 +203,94 @@ public struct HushModuleContext
 	public NativeModuleHost *hostData;
 }
 
+[CRepr]
+public struct HushStringView
+{
+	public char8 *data;
+	public uint32 size;
+
+	public this(char8* data, uint32 size) {
+		this.data = data;
+		this.size = size;
+	}
+	
+}
+
+[CRepr]
+public struct HushSystemDescriptor
+{
+	/// Size of this struct, used for versioning.
+	public uint32 structSize;
+	/// ABI version the module was built against.
+	public uint32 abiVersion;
+	/// Type id of the system: the FNV-1a 64 hash of the canonical name.
+	public uint64 typeId;
+	/// Canonical name, for example "MyGame.TrafficSystem".
+	public HushStringView name;
+	/// Update order, between 0 and 255.
+	public uint16 order;
+	/// Bit mask of HushSystemLifecycle values the system implements.
+	public uint32 lifecycleMask;
+}
+
+[CRepr]
+public struct HushObjectHandle
+{
+	public uint64 value; // This is a pointer handle, so, uint32 on web arch
+}
+
+[CRepr]
+public struct HushSystemRuntimeOps
+{
+	/// Creates a system object of the given type id. The scene pointer is an
+	/// opaque Hush::Scene handle owned by the engine.
+	public function HushObjectHandle (uint64 typeId, void *scene) create;
+	/// Destroys an object created by create. Always called by the engine
+	/// before the module is unloaded.
+	public function void (HushObjectHandle object) destroy;
+	public function void (HushObjectHandle object) init;
+	public function void (HushObjectHandle object, float delta) update;
+	public function void (HushObjectHandle object, float delta) fixedUpdate;
+	public function void (HushObjectHandle object) shutdown;
+	public function void (HushObjectHandle object) preRender;
+	public function void (HushObjectHandle object) render;
+	public function void (HushObjectHandle object) postRender;
+}
+
 public static class Exports {
+
+	[DisableChecks]
+	public static uint64 HashFnv1a64(StringView data){
+		uint64 hash = 0xcbf29ce484222325;
+		const uint64 prime = 0x100000001b3;
+
+		for (uint32 i = 0; i < data.Length; ++i)
+		{
+			uint8 value = (uint8)data[i];
+			unchecked {
+				hash = hash ^ value;
+				hash *= prime;
+			}
+		}
+
+		return hash;
+	}
+
+	[Comptime]
+	public static uint64 HashFnv1a64CompTime(StringView data){
+		uint64 hash = 0xcbf29ce484222325;
+		const uint64 prime = 0x100000001b3;
+
+		for (uint32 i = 0; i < data.Length; ++i)
+		{
+			uint8 value = (uint8)data[i];
+			hash = unchecked(hash ^ value);
+			hash = unchecked(hash * prime);
+		}
+
+		return hash;
+	}
+
 
 	[Export, CLink]
 	public static int32 HushRegisterModule(HushModuleContext* context) {
@@ -203,42 +301,117 @@ public static class Exports {
 		EngineDependencies.Instance.Provision(context.hushApi, context.engine, context.module);
 
 		// Register all components
+		void* scene = Hush.HushEngine.GetScene(context.engine);
 		for (int32 i = 0; i < CompSerializationRegistryImpl.Count; i++) {
 			CompSerializationInfo typeInfo = CompSerializationRegistryImpl.All[i];
-			Hush.Reflection.TypeInfo engineSideTypeInfo = .();
 			StringView nameView = .(&(typeInfo.name[0]));
-			Hush.ReflectionDB.RegisterForeignClass(context.hostData.reflectionDB, nameView.Ptr, (uint64)nameView.Length, typeInfo.byteSize, typeInfo.align, context.module);
+			uint8 regErr = Hush.ReflectionDB.RegisterForeignClass(context.hostData.reflectionDB, nameView.Ptr, (uint64)nameView.Length, typeInfo.byteSize, typeInfo.align, context.module);
+			Hush.ComponentTraits.ComponentInfo compInfo = .();
+			compInfo.size = typeInfo.byteSize;
+			compInfo.alignment = typeInfo.align;
+			compInfo.name = nameView.Ptr;
+
+			Hush.Reflection.TypeId classType = .();
+			classType.id = HashFnv1a64(nameView);
+
+			// Add all the mf fields
+			bool addedAll = true;
+			for (uint32 j = 0; j < typeInfo.propertyCount; j++) {
+				let prop = typeInfo.properties[j];
+				StringView propName = .(&(typeInfo.name[0]));
+				Hush.Reflection.TypeId propType = .();
+				propType.id = prop.type.Underlying;
+				bool added = Hush.ReflectionDB.AddFieldToForeignClass(context.hostData.reflectionDB, classType, propName.Ptr, (uint64)propName.Length, propType, prop.offset);
+				if (!added) {
+					addedAll = false;
+					Console.WriteLine(scope $"Could not add property {propName} for type {nameView}!");
+					continue;
+				}
+			}
+
+			if (!addedAll) {
+				return (int32)HushModuleResult.RegistrationFailed;
+			}
+
+			// WIP:
+			// compInfo.ops.ctor = scope (rawBytes) => {
+				
+			// };
+			
+			Hush.Scene.RegisterComponentRaw(scene, &compInfo);
+			if (regErr != Hush.Reflection.ERegisterClassError_None) {
+				Console.WriteLine($"Failed to register type {nameView}, error: {regErr}");
+				return (int32)HushModuleResult.RegistrationFailed;
+			}
 		}
-		
+		// Then register all systems
+		for (let systemInfo in SystemRegistryImpl.All) {
+			HushSystemDescriptor descriptor = .();
+			descriptor.structSize = (uint32)sizeof(HushSystemDescriptor);
+			descriptor.abiVersion = context.abiVersion;
+			StringView sysName = .(&(systemInfo.name[0]));
+			Console.WriteLine(scope $"Attempting to register system: {sysName}");
+			descriptor.name = .(sysName.Ptr, (uint32)sysName.Length);
+			descriptor.typeId = HashFnv1a64(sysName);
+			descriptor.order = 0; // TODO: Should come from a function in the actual system instance
+			descriptor.lifecycleMask = 127; // This just means run all functions
+			bool registered = Hush.Modules.RegisterForeignSystem(context.engine, context.module, &descriptor);
+			if (!registered) {
+				Console.WriteLine(scope $"Failed to register system {sysName}!");
+				continue;
+			}
+		}
+
+		HushSystemRuntimeOps systemRuntimeOps = .();
+		systemRuntimeOps.create = => InstantiateSystem;
+		systemRuntimeOps.init = => CallSystemInit;
+		systemRuntimeOps.update = => CallSystemOnUpdate;
+		systemRuntimeOps.fixedUpdate = => CallSystemOnFixedUpdate;
+		systemRuntimeOps.shutdown = => CallSystemOnShutdown;
+		systemRuntimeOps.preRender = => CallSystemOnPreRender;
+		systemRuntimeOps.render = => CallSystemOnRender;
+		systemRuntimeOps.postRender = => CallSystemOnPostRender;
+		systemRuntimeOps.destroy = => DestroySystem;
+		if (!Hush.Modules.SetForeignSystemRuntimeOps(context.engine, context.module, &systemRuntimeOps)) {
+			Console.WriteLine("Failed to register foreign system runtime ops, make sure all operations are covered and the struct matches with the provided ABI");
+			return (int32)HushModuleResult.RegistrationFailed;
+		}
+
 		return (int32)HushModuleResult.Ok;
 	}
 
-	[Export, CLink]
-	public static uint8* InstantiateSystem(RegTypeInfo* systemInfo) {
-		Debug.Assert(systemInfo != null, "Cannot instantiate a system with null info");
-		StringView sysName = .(&systemInfo.name[0]);
+	public static HushObjectHandle InstantiateSystem(uint64 typeId, void* scene) {
+		Debug.Assert(scene != null, "Cannot instantiate a system with null scene");
+		Debug.Assert(typeId != 0, "Cannot instantiate a nil system");
 
-		int32 assumedSystemIdx = systemInfo.registryIndex;
-		// Debug.Assert(assumedSystemIdx >= SystemRegistryImpl.Count, scope $"System index {systemInfo.registryIndex} is out of bounds for system count {SystemRegistryImpl.Count}");
+		HushObjectHandle handle = .();
+		handle.value = 0;
 
+		uint64 key;
+		int systemIndex;
+		bool contains = SystemRegistryImpl.TypeIdToIndexMap.TryGet(typeId, out key, out systemIndex);
+		if (!contains) {
+			return handle;
+		}
 
-		Type assumedRegTypeInfoType = SystemRegistryImpl.TypeLookup[assumedSystemIdx];
-		// let typeRes = Type.GetTypeByName(sysName);
+		Type assumedRegTypeInfoType = SystemRegistryImpl.TypeLookup[systemIndex];
+		// // let typeRes = Type.GetTypeByName(sysName);
 
-		// if (typeRes case .Err(let err)) {
-		// 	Debug.FatalError(scope $"Could not find a system with the name {sysName}");
-		// }
+		// // if (typeRes case .Err(let err)) {
+		// // 	Debug.FatalError(scope $"Could not find a system with the name {sysName}");
+		// // }
 
 		var instanceRes = assumedRegTypeInfoType.CreateObject();
 
 		if (instanceRes case .Err(let instanceErr)) {
-			Debug.FatalError(scope $"Unable to create system {sysName}, error: {instanceErr}");
+			Debug.FatalError(scope $"Unable to create system {typeId}, error: {instanceErr}");
 		}
 
 		Object result = instanceRes.Value;
 		var systemResult = (GameSystem)result;
 		// Who knows lol
-		return (uint8*)Internal.UnsafeCastToPtr(systemResult);
+		handle.value = (uint)Internal.UnsafeCastToPtr(systemResult);
+		return handle;
 	}
 
 	[Export, CLink]
@@ -299,57 +472,83 @@ public static class Exports {
 
 
 	[Export, CLink]
-	public static void CallSystemInit(void* systemHandle) {
-		Debug.Assert(systemHandle != null, "Cannot call init on null system!");
-		Object objectHandle = Internal.UnsafeCastToObject(systemHandle);
+	public static void CallSystemInit(HushObjectHandle systemHandle) {
+		Debug.Assert(systemHandle.value != 0, "Cannot call init on nil system!");
+		uint intPtr = ((uint)systemHandle.value);
+		void* rawRef = (void*)intPtr;
+		Object objectHandle = Internal.UnsafeCastToObject(rawRef);
 		var systemImpl = (GameSystem)objectHandle;
 		systemImpl.Init();
 	}
 	
 	[Export, CLink]
-	public static void CallSystemOnUpdate(void* systemHandle, float delta) {
-		Debug.Assert(systemHandle != null, "Cannot call OnUpdate on null system!");
-		Object objectHandle = Internal.UnsafeCastToObject(systemHandle);
+	public static void CallSystemOnUpdate(HushObjectHandle systemHandle, float delta) {
+		Debug.Assert(systemHandle.value != 0, "Cannot call OnUpdate on nil system!");
+		uint intPtr = ((uint)systemHandle.value);
+		void* rawRef = (void*)intPtr;
+		Object objectHandle = Internal.UnsafeCastToObject(rawRef);
 		var systemImpl = (GameSystem)objectHandle;
 		systemImpl.OnUpdate(delta);
 	}
 
 	[Export, CLink]
-	public static void CallSystemOnFixedUpdate(void* systemHandle, float delta) {
-		Debug.Assert(systemHandle != null, "Cannot call OnFixedUpdate on null system!");
-		Object objectHandle = Internal.UnsafeCastToObject(systemHandle);
+	public static void CallSystemOnFixedUpdate(HushObjectHandle systemHandle, float delta) {
+		Debug.Assert(systemHandle.value != 0, "Cannot call OnFixedUpdate on nil system!");
+		uint intPtr = ((uint)systemHandle.value);
+		void* rawRef = (void*)intPtr;
+		Object objectHandle = Internal.UnsafeCastToObject(rawRef);
+
 		var systemImpl = (GameSystem)objectHandle;
 		systemImpl.OnFixedUpdate(delta);
 	}
 	
 	[Export, CLink]
-	public static void CallSystemOnShutdown(void* systemHandle) {
-		Debug.Assert(systemHandle != null, "Cannot call OnShutdown on null system!");
-		Object objectHandle = Internal.UnsafeCastToObject(systemHandle);
+	public static void CallSystemOnShutdown(HushObjectHandle systemHandle) {
+		Debug.Assert(systemHandle.value != 0, "Cannot call OnShutdown on nil system!");
+		uint intPtr = ((uint)systemHandle.value);
+		void* rawRef = (void*)intPtr;
+		Object objectHandle = Internal.UnsafeCastToObject(rawRef);
 		var systemImpl = (GameSystem)objectHandle;
 		systemImpl.OnShutdown();
 	}
 	
 	[Export, CLink]
-	public static void CallSystemOnRender(void* systemHandle) {
-		Debug.Assert(systemHandle != null, "Cannot call OnRender on null system!");
-		Object objectHandle = Internal.UnsafeCastToObject(systemHandle);
+	public static void CallSystemOnRender(HushObjectHandle systemHandle) {
+		Debug.Assert(systemHandle.value != 0, "Cannot call OnRender on nil system!");
+		uint intPtr = ((uint)systemHandle.value);
+		void* rawRef = (void*)intPtr;
+		Object objectHandle = Internal.UnsafeCastToObject(rawRef);
+
 		var systemImpl = (GameSystem)objectHandle;
 		systemImpl.OnRender();
 	}
 
+	public static void DestroySystem(HushObjectHandle systemHandle) {
+		Debug.Assert(systemHandle.value != 0, "Cannot call Destroy on nil system!");
+		uint intPtr = ((uint)systemHandle.value);
+		void* rawRef = (void*)intPtr;
+		Object objectHandle = Internal.UnsafeCastToObject(rawRef);
+
+		var systemImpl = (GameSystem)objectHandle;
+		delete systemImpl;
+	}
+
 	[Export, CLink]
-	public static void CallSystemOnPreRender(void* systemHandle) {
-		Debug.Assert(systemHandle != null, "Cannot call OnPreRender on null system!");
-		Object objectHandle = Internal.UnsafeCastToObject(systemHandle);
+	public static void CallSystemOnPreRender(HushObjectHandle systemHandle) {
+		Debug.Assert(systemHandle.value != 0, "Cannot call OnPreRender on nil system!");
+		uint intPtr = ((uint)systemHandle.value);
+		void* rawRef = (void*)intPtr;
+		Object objectHandle = Internal.UnsafeCastToObject(rawRef);
 		var systemImpl = (GameSystem)objectHandle;
 		systemImpl.OnPreRender();
 	}
 	
 	[Export, CLink]
-	public static void CallSystemOnPostRender(void* systemHandle) {
-		Debug.Assert(systemHandle != null, "Cannot call OnPostRender on null system!");
-		Object objectHandle = Internal.UnsafeCastToObject(systemHandle);
+	public static void CallSystemOnPostRender(HushObjectHandle systemHandle) {
+		Debug.Assert(systemHandle.value != 0, "Cannot call OnPostRender on nil system!");
+		uint intPtr = ((uint)systemHandle.value);
+		void* rawRef = (void*)intPtr;
+		Object objectHandle = Internal.UnsafeCastToObject(rawRef);
 		var systemImpl = (GameSystem)objectHandle;
 		systemImpl.OnPostRender();
 	}

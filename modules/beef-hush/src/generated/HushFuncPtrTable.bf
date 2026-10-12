@@ -7,6 +7,7 @@ public struct HushFuncPtrTable {
 	public function void(Reflection.TypeInfo* self,uint64) HushFuncPtr_Hush__Reflection__TypeInfo__SetSize;
 	public function void(Reflection.TypeInfo* self,uint64) HushFuncPtr_Hush__Reflection__TypeInfo__SetAlignment;
 	public function uint8(void* self,char8* ,uint64 nameSize,uint64 ,uint64 ,uint64) HushFuncPtr_Hush__Reflection__ReflectionDB__RegisterForeignClass;
+	public function bool(void* self,Reflection.TypeId ,char8* ,uint64 fieldNameSize,Reflection.TypeId ,uint64) HushFuncPtr_Hush__Reflection__ReflectionDB__AddFieldToForeignClass;
 	public function uint64(Entity* self,ComponentTraits.ComponentInfo*) HushFuncPtr_Hush__Entity__RegisterComponentRaw;
 	public function void*(Entity* self,uint64) HushFuncPtr_Hush__Entity__AddComponentRaw;
 	public function void*(Entity* self,uint64) HushFuncPtr_Hush__Entity__GetComponentRaw;

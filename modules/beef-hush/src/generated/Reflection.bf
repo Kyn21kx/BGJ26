@@ -44,4 +44,9 @@ public struct Reflection {
 	public struct ForeignVariant {
 		public char8[40] m_member0;
 	}
+
+	[CRepr]
+	public struct TypeId {
+		public uint64 id;
+	}
 }

@@ -3,24 +3,24 @@ namespace BeefHush;
 using System;
 using System.Collections;
 
-public enum ECompPropertyType : int32
+public enum ECompPropertyType : uint64
 {
 	Unknown = 0,
-	I8,
-	U8,
-	I16,
-	U16,
-	I32,
-	U32,
-	I64,
-	U64,
-	F32,
-	F64,
-	Bool,
-	String,
-	Array,
-	Vector3,
-	Vector2
+	I8 = Exports.HashFnv1a64CompTime("int8_t"),
+	U8 = Exports.HashFnv1a64CompTime("uint8_t"),
+	I16 = Exports.HashFnv1a64CompTime("int16_t"),
+	U16 = Exports.HashFnv1a64CompTime("uint16_t"),
+	I32 = Exports.HashFnv1a64CompTime("int32_t"),
+	U32 = Exports.HashFnv1a64CompTime("uint32_t"),
+	I64 = Exports.HashFnv1a64CompTime("int64_t"),
+	U64 = Exports.HashFnv1a64CompTime("uint64_t"),
+	F32 = Exports.HashFnv1a64CompTime("float"),
+	F64 = Exports.HashFnv1a64CompTime("double"),
+	Bool = Exports.HashFnv1a64CompTime("bool"),
+	String = Exports.HashFnv1a64CompTime("String"),
+	Array = Exports.HashFnv1a64CompTime("Array"),
+	Vector3 = Exports.HashFnv1a64CompTime("Vector3"),
+	Vector2 = Exports.HashFnv1a64CompTime("Vector2")
 }
 
 [CRepr]
