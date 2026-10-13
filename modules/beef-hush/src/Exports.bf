@@ -338,7 +338,13 @@ public static class Exports {
 				
 			// };
 			
-			Hush.Scene.RegisterComponentRaw(scene, &compInfo);
+			uint64 compId = Hush.Scene.RegisterComponentRaw(scene, &compInfo);
+			var compEnt = Hush.Scene.EntityFromIdUnchecked(scene, compId);
+			const StringView inspectableCompName = "InspectableComponent";
+			uint64 inspectableCompId = Hush.Scene.Lookup(scene, inspectableCompName.Ptr, (uint64)inspectableCompName.Length);
+			Debug.Assert(inspectableCompId != 0, "The inspectable component should be registered before a module's entry point");
+			var inspectableComp = (Hush.InspectableComponent*)compEnt.AddComponentRaw(inspectableCompId);
+			inspectableComp.reflectedTypeId = classType;
 			if (regErr != Hush.Reflection.ERegisterClassError_None) {
 				Console.WriteLine($"Failed to register type {nameView}, error: {regErr}");
 				return (int32)HushModuleResult.RegistrationFailed;

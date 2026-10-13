@@ -1,7 +1,7 @@
 FileVersion = 1
 LastConfig = "Debug"
 LastPlatform = "Win64"
-RecentFilesList = ["src\\Exports.bf", "src\\CompSerializationRegistry.bf", "c:\\Program Files\\BeefLang\\BeefLibs\\corlib\\src\\Object.bf", "src\\System.bf", "src\\CameraSystem.bf", "src\\utils\\MathUtils.bf", "src\\utils\\Constants.bf", "src\\SpellSystem.bf", "src\\components\\RigidBody.bf", "src\\generated\\InputManager.bf", "src\\utils\\SpatialGrid.bf", "src\\PhysicsSystem.bf", "src\\MovementSystem.bf", "src\\components\\AABB.bf", "src\\components\\MovementStat.bf", "src\\generated\\Entity.bf", "src\\Entity.bf", "src\\TestSystem.bf", "src\\components\\Spell.bf", "src\\ParticleSystem.bf"]
+RecentFilesList = ["src\\Exports.bf", "src\\generated\\ReflectionDB.bf", "c:\\Program Files\\BeefLang\\BeefLibs\\corlib\\src\\Object.bf", "src\\CameraSystem.bf", "src\\CompSerializationRegistry.bf", "src\\System.bf", "src\\utils\\MathUtils.bf", "src\\utils\\Constants.bf", "src\\SpellSystem.bf", "src\\components\\RigidBody.bf", "src\\generated\\InputManager.bf", "src\\utils\\SpatialGrid.bf", "src\\PhysicsSystem.bf", "src\\MovementSystem.bf", "src\\components\\AABB.bf", "src\\components\\MovementStat.bf", "src\\generated\\Entity.bf", "src\\Entity.bf", "src\\TestSystem.bf", "src\\components\\Spell.bf"]
 
 [MainWindow]
 X = 225
@@ -49,8 +49,8 @@ TabWidth = 84.54546
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\Exports.bf"
-CursorPos = 9225
-VertPos = 3679.2
+CursorPos = 9958
+VertPos = 4001.2
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
@@ -60,7 +60,7 @@ TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "c:\\Program Files\\BeefLang\\BeefLibs\\corlib\\src\\Object.bf"
 CursorPos = 2763
-VertPos = 1628.92
+VertPos = 956.92
 ProjectName = "corlib"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
@@ -87,8 +87,7 @@ TabWidth = 187.2727
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\CompSerializationRegistry.bf"
-CursorPos = 74
-VertPos = 1134.0
+CursorPos = 101
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets]]
