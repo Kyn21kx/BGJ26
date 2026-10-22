@@ -49,6 +49,12 @@ public class MovementSytem : GameSystem
 		this.entityQuery.Each<PlayerTag, RigidBody, Controller, MovementStat>(scope (entityRef,
 			 tag, rigidBody, controller, movementStat) => {
 
+				if (movementStat.stunTimeRemaining > 0f) {
+					// No speed modifier (i.e, tenacity) bc this is supposed to be in seconds
+					movementStat.stunTimeRemaining -= delta;
+					return;
+				}
+
 				Vector3 movement = .();
 
 				if(Hush.InputManager.IsKeyDown((EKeyCode)controller.up)){

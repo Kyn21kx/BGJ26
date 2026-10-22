@@ -6,6 +6,8 @@ using System;
 [HushComponent, CRepr]
 struct Lifetime
 {
+	// ENGINE: This should be a functionality of the engine
+	public function void(uint64) onQueueDestroyHook;
 	public float remaining;
 	public float initialLifetime;
 }

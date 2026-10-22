@@ -43,6 +43,9 @@ class LifetimeSystem : GameSystem
 			if (lifetime.remaining <= 0f) {
 				var entityRef; // UX: Stupid copy
 				expiredEntities.Add(*entityRef.InnerEntity());
+				if (lifetime.onQueueDestroyHook != null) {
+					lifetime.onQueueDestroyHook(entityRef.Id);
+				}
 			}
 		});
 

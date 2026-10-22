@@ -54,6 +54,7 @@ public struct HushFuncPtrTable {
 	public function bool(void* ,uint64 ,void*) HushFuncPtr_Hush__Modules__SetForeignSystemRuntimeOps;
 	public function bool(void* ,uint64 ,void*) HushFuncPtr_Hush__Modules__RegisterForeignSystem;
 	public function bool(void* ,void* ,uint64 ,uint64) HushFuncPtr_Hush__Modules__AddSystemToScene;
+	public function bool(void* ,void* ,uint64) HushFuncPtr_Hush__Modules__RegisterComponentFromReflectedType;
 	public function bool(void* ,uint64) HushFuncPtr_Hush__Modules__HasReflectedType;
 	public function bool(void* ,uint64 ,uint64*) HushFuncPtr_Hush__Modules__GetReflectedTypeOwner;
 	public function uint32(void* ,uint64) HushFuncPtr_Hush__Modules__GetReflectedTypeNameLength;
@@ -90,5 +91,9 @@ public struct HushFuncPtrTable {
 	public function Vector3(Camera* self,float* ,Vector2 ,Vector3*) HushFuncPtr_Hush__Camera__ScreenToWorldPosUnsafe;
 	public function Vector3(Camera* self,Vector3 ,Vector3 ,float) HushFuncPtr_Hush__Camera__ProjectPlanePosition;
 	public function float(Camera* self) HushFuncPtr_Hush__Camera__GetFarPlane;
+	public function Graphics.Material3D.EError(Graphics.Material3D* self,char8* ,uint64 nameSize,uint8* ,uint64 valueSize) HushFuncPtr_Hush__Graphics__Material3D__SetPropertyRaw;
+	public function Graphics.Material3D.EError(Graphics.Material3D* self,char8* ,uint64 nameSize,uint8* ,uint64) HushFuncPtr_Hush__Graphics__Material3D__GetPropertyRaw;
+	public function uint64(MeshReference* self) HushFuncPtr_Hush__MeshReference__GetMaterialCount;
+	public function Graphics.Material3D*(MeshReference* self,uint64) HushFuncPtr_Hush__MeshReference__GetMaterialAt;
 	public function void(MeshReference* self,Vector3* ,Vector3*) HushFuncPtr_Hush__MeshReference__CalculateBounds;
 }

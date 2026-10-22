@@ -12,4 +12,12 @@ public struct MeshReference {
 	public void CalculateBounds(Vector3* outCenter, Vector3* outSize) {
 		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__MeshReference__CalculateBounds(&this, outCenter, outSize);
 	}
+
+	public Graphics.Material3D* GetMaterialAt(uint64 index) {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__MeshReference__GetMaterialAt(&this, index);
+	}
+
+	public uint64 GetMaterialCount() {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__MeshReference__GetMaterialCount(&this);
+	}
 }

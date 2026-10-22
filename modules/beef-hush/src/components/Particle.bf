@@ -3,6 +3,14 @@ namespace BeefHush;
 using Hush;
 using System;
 
+public enum EParticleEffectFlags : uint8 {
+	None = 0,
+	FadeOutAlphaOverTime = 1,
+	FadeInAlphaOverTime = 2,
+	GrowOverTime = 4,
+	ShrinkOverTime = 8,
+}
+
 [HushComponent, CRepr]
 struct ParticleEmitter {
 	public Vector3 velocity;
@@ -17,4 +25,5 @@ struct ParticleEmitter {
 	public float minScale;
 	public float maxScale;
 	public float emitRadius;
+	public uint8 effectFlags;
 }

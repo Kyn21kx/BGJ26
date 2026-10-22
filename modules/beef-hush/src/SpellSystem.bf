@@ -3,13 +3,19 @@ namespace BeefHush;
 using Hush;
 using System;
 using System.Collections;
+using System.Diagnostics;
 
 [RegisterSystem]
 class SpellSystem : GameSystem
 {
 	private const uint8 MAX_SPELL_MESH_COUNT = (uint8)SpellType.MAX;
 	// NOTE: This should match the Spell's SpellType enum
-	private const StringView [MAX_SPELL_MESH_COUNT] availableSpells = .("res://FireBallPURPLE.glb", "res://decahedron.glb");
+	private const StringView [MAX_SPELL_MESH_COUNT] availableSpells = .("res://FireBallPURPLE.glb", "res://decahedron.glb", "res://PlayerModelGhosted.glb");
+	// HACK: Super bad way of saying we can't get our models in the same scale
+	private const float [MAX_SPELL_MESH_COUNT] spellScaleFactor = .(0.5f, 0.5f, 0.1f);
+	private const float SELF_STUN_TIME = 0.5f;
+
+	
 	private Query m_fireSpellsQuery;
 	private Query m_manaQuery;
 	private float m_totalTime;
@@ -72,15 +78,18 @@ class SpellSystem : GameSystem
 				// Damage the enemy
 				HealthSystem.DamageEntity(this.m_scene, otherColl.id, 1.0f, spellColl.id);
 				this.m_entitiesToDelete.Add(spellColl.id);
+				OnSpellDestroyed(spellColl.id);
 			}
 			else if (spellColl.collider.identifierTag == (int32)EEntityTag.EnemySpell && otherColl.collider.identifierTag == (int32)EEntityTag.Player) {
 				// Damage the enemy
 				HealthSystem.DamageEntity(this.m_scene, otherColl.id, 1.0f, spellColl.id);
 				this.m_entitiesToDelete.Add(spellColl.id);
+				OnSpellDestroyed(spellColl.id);
 			}
 			else if (otherColl.collider.identifierTag == (int32)EEntityTag.Wall) {
 				// Do whatever the spell needs to do on collision, then delete it
 				this.m_entitiesToDelete.Add(spellColl.id);
+				OnSpellDestroyed(spellColl.id);
 			}
 		});
 	}
@@ -136,7 +145,7 @@ class SpellSystem : GameSystem
 		return (worldPos - currPos).normalized();
 	}
 
-	public static uint64 MakeSpell(SpellType type, float size, int32 collIdentifier, Vector3 position, Vector3 direction, float speed, float range) {
+	public static uint64 MakeSpell(uint64 caster, SpellType type, int32 collIdentifier, Vector3 position, Vector3 direction, float speed, float range) {
 		// Slow path at instancing
 		const StringView renderSystemName = "RenderingSystem";
 		void* scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
@@ -144,18 +153,35 @@ class SpellSystem : GameSystem
 
 		// TODO: Use the entity registry to fetch this, bc this performs a string hash
 		let handle = renderingSystem.GetComponent<RenderingSystemAPI>();
+
+		uint64 bulletRootEntityId = MakeSpellProjectile(scene, caster, type, handle, collIdentifier, position, direction, speed, range);
+		BeefHush.Entity bulletRootEntity = .(Scene.EntityFromIdUnchecked(scene, bulletRootEntityId));
+		// Add particle system
+		ParticleEmitter* emitter = bulletRootEntity.AddComponent<ParticleEmitter>();
+		FillParticleEmitterForSpell(emitter, type, direction);
+		return bulletRootEntityId;
+	}
+
+	private static uint64 MakeSpellProjectile(void* scene, uint64 caster, SpellType type, RenderingSystemAPI* renderingHandle, int32 collIdentifier, Vector3 position, Vector3 direction, float speed, float range) {
 		StringView path = availableSpells[(int32)type];
-		uint64 rootEntId = handle.instantiateMeshEntities(&(path[0]), handle.instance);
+		uint64 rootEntId = renderingHandle.instantiateMeshEntities(&(path[0]), renderingHandle.instance);
 
 		let bulletRootEntity = BeefHush.Entity(Scene.EntityFromIdUnchecked(scene, rootEntId));
 		var bulletXform = bulletRootEntity.GetComponent<LocalTransform>();
 		var bulletWorldXform = bulletRootEntity.GetComponent<WorldTransform>();
-		bulletXform.SetScale(Constants.Vector3_ONE * size);
+
+		bulletXform.SetScale(Constants.Vector3_ONE * spellScaleFactor[(int32)type]);
+
 		// Ensure the projectile faces the correct direction
 		Vector3 vecRotTarget = position + direction;
 		vecRotTarget.y = 0f;
 		Vector3 newEuler = Vector3.LookRotationEulerYawOnly(vecRotTarget, position, Constants.Vector3_UP);
 		bulletXform.SetEulerAngles(&newEuler);
+
+
+		let spellInfo = bulletRootEntity.AddComponent<SpellInfo>();
+		spellInfo.casterEntity = caster;
+		spellInfo.type = (int32)type;
 		let collider = bulletRootEntity.AddComponent<Collider>();
 		collider.identifierTag = collIdentifier;
 		RigidBody* rig = bulletRootEntity.AddComponent<RigidBody>();
@@ -165,27 +191,87 @@ class SpellSystem : GameSystem
 		Lifetime* bulletLifetime = bulletRootEntity.AddComponent<Lifetime>();
 		// t = d / V
 		bulletLifetime.remaining = range / speed;
+		bulletLifetime.onQueueDestroyHook = => OnSpellDestroyed;
+		switch(type) {
+		case .Fire:
+		case .Electric:
+			break;
+		case .Dasher:
+			bulletRootEntity.AddComponent<PlayerTag>(); // So that the Camera system follows it too
+			var meshRef = bulletRootEntity.GetComponent<BeefHush.MeshReference>();
+			let matCount = meshRef.GetMaterialCount();
+			Debug.Assert(matCount > 0, "Mesh reference for projectile root holds no materials!");
+			Graphics.Material3D* mat = meshRef.GetMaterialAt(0);
+			const StringView emissionProp = "emissionFactors";
+			Vector4 emission = .();
+			emission.x = 1f;
+			emission.y = 1f;
+			emission.z = 1f;
+			emission.w = 10f;
+			mat.SetPropertyRaw(emissionProp.Ptr, (uint64)emissionProp.Length, (uint8*)&emission, sizeof(Vector4));
+			break;
+		default:
+			Debug.Assert(false, "Spell type is outside the bounds of implemented spells!");
+			return 0;
+		}
+		return rootEntId;
+	}
 
-		// Add particle system
-		ParticleEmitter* emitter = bulletRootEntity.AddComponent<ParticleEmitter>();
+	private static void FillParticleEmitterForSpell(ParticleEmitter* emitter, SpellType type, Vector3 direction) {
 		(*emitter) = .();
 		emitter.maxParticles = 500;
 		emitter.maxScale = 0.2f;
 		emitter.emitRadius = 0.3f;
 		emitter.minScale = 0.1f;
-		emitter.particleAssetId = 0; // This will depend on the spell type
 		emitter.particleLifeTime = 1f;
 		emitter.velocity = direction * -3.0f; // We could make them go slightly up to disappear
 		emitter.velocity.y = 0.0f;
 		emitter.emitRate = 0.01f;
-		return rootEntId;
+
+		switch(type) {
+		case .Fire:
+		case .Electric:
+			emitter.particleAssetId = 0;
+			break;
+		case .Dasher:
+			emitter.minScale = 1f;
+			emitter.maxScale = 1.5f;
+			emitter.particleAssetId = 3;
+			break;
+		default:
+			Debug.Assert(false, "Spell type is outside the bounds of implemented spells!");
+			return;
+		}
+	}
+
+	// Either at the end of the spell's lifetime, or when we collide with something
+	private static void OnSpellDestroyed(uint64 spellId) {
+		// Check the spell type
+		void* scene = HushEngine.GetScene(EngineDependencies.Instance.Engine);
+		BeefHush.Entity spellEnt = .(Scene.EntityFromIdUnchecked(scene, spellId));
+		let spellInfo = spellEnt.GetComponent<SpellInfo>();
+		Debug.Assert(spellInfo != null, scope $"Spell info component was not set for spell {spellId}");
+		let spellType = (SpellType)spellInfo.type;
+		switch(spellType) {
+		case .Dasher:
+			BeefHush.Entity casterEnt = .(Scene.EntityFromIdUnchecked(scene, spellInfo.casterEntity));
+			// TP to the position of the spell
+			var spellRig = spellEnt.GetComponent<RigidBody>();
+			var casterRig = casterEnt.GetComponent<RigidBody>();
+
+			casterRig.SetVelocity(Vector3.ZERO);
+			casterRig.SetPosition(spellRig.GetPosition());
+			break;
+		default:
+			break;
+		}
 	}
 
 	private void SpawnBullet(BeefHush.Entity* entityRef, RigidBody* spellRig, Spell* spell, Vector3 direction) {
 		const StringView path = "res://decahedron.glb";
 
-		castingSubSystem(entityRef, spell, &direction);
-		MakeSpell((SpellType)spell.type, spell.projectileSize, (int32)EEntityTag.Spell, spellRig.aabb.pos, direction, spell.projectileSpeed, spell.range);
+		CastingSubSystem(entityRef, spell, &direction);
+		MakeSpell(entityRef.Id, (SpellType)spell.type, (int32)EEntityTag.Spell, spellRig.aabb.pos, direction, spell.projectileSpeed, spell.range);
 	}
 
 	public void OnUpdate(float delta)
@@ -219,7 +305,7 @@ class SpellSystem : GameSystem
 
 	}
 
-	public void castingSubSystem(BeefHush.Entity* entityRef, Spell* spell, Vector3* dir){
+	public void CastingSubSystem(BeefHush.Entity* entityRef, Spell* spell, Vector3* dir){
 		float roll = (float)this.m_random.NextDouble();
 		if (roll >= spell.badCastChance) {
 			return;
@@ -228,22 +314,22 @@ class SpellSystem : GameSystem
 		const float BAD_CAST_SHAKE_STRENGTH = 0.1f;
 		CameraSystem.SendShake(BAD_CAST_SHAKE_STRENGTH);
 
-		if(spell.type == (int32)SpellType.Fire){
+		let spellType = (SpellType)spell.type;
+
+		switch(spellType) {
+		case .Fire:
+		case .Dasher:
 			(*dir) *= -1;
+			break;
+		case .Electric:
+			var movStat = entityRef.GetComponent<MovementStat>();
+			Debug.Assert(movStat != null, "Firing electric spell from an entity without a movement state");
+			movStat.stunTimeRemaining += SELF_STUN_TIME;
+			break;
+		default:
+			Debug.Assert(false, "Illegal state");
+			break;
 		}
-
-		if(spell.type == (int32)SpellType.Electric){
-			// Self-stun on a bad cast. IsStunned/Lifetime are guaranteed on the
-			// caster (added at startup), but guard anyway in case of misuse.
-			IsStunned* stun = entityRef.GetComponent<IsStunned>();
-			Lifetime* lifetime = entityRef.GetComponent<Lifetime>();
-			if (stun != null && lifetime != null && !stun.currentlyStunned) {
-				lifetime.initialLifetime = 1.0f;
-				lifetime.remaining = 1.0f;
-				stun.currentlyStunned = true;
-			}
-		}
-
 	}
 
 	public void OnFixedUpdate(float delta)

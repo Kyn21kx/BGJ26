@@ -7,6 +7,12 @@ public struct Reflection {
 	public const int32 ERegisterClassError_None = 0;
 
 	[CRepr]
+	public struct VariantView {
+	public const int32 EVariantError_NonSameType = 1;
+	public const int32 EVariantError_None = 0;
+	}
+
+	[CRepr]
 	public struct TypeInfo {
 		public char8[8] m_member0;
 		public char8[8] m_member1;

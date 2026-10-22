@@ -1,7 +1,7 @@
 FileVersion = 1
 LastConfig = "Debug"
 LastPlatform = "Win64"
-RecentFilesList = ["src\\Exports.bf", "src\\generated\\ReflectionDB.bf", "c:\\Program Files\\BeefLang\\BeefLibs\\corlib\\src\\Object.bf", "src\\CameraSystem.bf", "src\\CompSerializationRegistry.bf", "src\\System.bf", "src\\utils\\MathUtils.bf", "src\\utils\\Constants.bf", "src\\SpellSystem.bf", "src\\components\\RigidBody.bf", "src\\generated\\InputManager.bf", "src\\utils\\SpatialGrid.bf", "src\\PhysicsSystem.bf", "src\\MovementSystem.bf", "src\\components\\AABB.bf", "src\\components\\MovementStat.bf", "src\\generated\\Entity.bf", "src\\Entity.bf", "src\\TestSystem.bf", "src\\components\\Spell.bf"]
+RecentFilesList = ["src\\LifetimeSystem.bf", "src\\components\\Lifetime.bf", "src\\SpellSystem.bf", "src\\Exports.bf", "src\\CompSerializationRegistry.bf", "src\\System.bf", "src\\generated\\ReflectionDB.bf", "c:\\Program Files\\BeefLang\\BeefLibs\\corlib\\src\\Object.bf", "src\\CameraSystem.bf", "src\\utils\\MathUtils.bf", "src\\utils\\Constants.bf", "src\\components\\RigidBody.bf", "src\\generated\\InputManager.bf", "src\\utils\\SpatialGrid.bf", "src\\PhysicsSystem.bf", "src\\MovementSystem.bf", "src\\components\\AABB.bf", "src\\components\\MovementStat.bf", "src\\generated\\Entity.bf", "src\\Entity.bf"]
 
 [MainWindow]
 X = 225
@@ -29,7 +29,7 @@ Type = "TabbedView"
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 Active = true
 TabLabel = "Workspace"
-TabWidth = 110.9091
+TabWidth = 111.0526
 TabIsPinned = false
 Type = "ProjectPanel"
 
@@ -44,28 +44,46 @@ Type = "TabbedView"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 Active = true
+TabLabel = "LifetimeSystem.bf"
+TabWidth = 137.8947
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\LifetimeSystem.bf"
+CursorPos = 1138
+VertPos = 957.0
+ProjectName = "beef-hush"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "SpellSystem.bf"
+TabWidth = 110.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\SpellSystem.bf"
+CursorPos = 10286
+VertPos = 7221.0
+ProjectName = "beef-hush"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "Exports.bf"
-TabWidth = 84.54546
+TabWidth = 85.78947
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\Exports.bf"
-CursorPos = 9958
-VertPos = 4001.2
+CursorPos = 11242
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "Object.bf"
-TabWidth = 80.0
+TabWidth = 81.57895
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "c:\\Program Files\\BeefLang\\BeefLibs\\corlib\\src\\Object.bf"
 CursorPos = 2763
-VertPos = 956.92
 ProjectName = "corlib"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "CameraSystem.bf"
-TabWidth = 126.3636
+TabWidth = 124.7368
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\CameraSystem.bf"
@@ -74,7 +92,7 @@ ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "System.bf"
-TabWidth = 83.63636
+TabWidth = 83.68421
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\System.bf"
@@ -83,11 +101,11 @@ ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "CompSerializationRegistry.bf"
-TabWidth = 187.2727
+TabWidth = 187.8947
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\CompSerializationRegistry.bf"
-CursorPos = 101
+CursorPos = 6093
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets]]
@@ -104,7 +122,7 @@ Type = "TabbedView"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "Memory"
-TabWidth = 97.27273
+TabWidth = 96.31579
 TabIsPinned = false
 Type = "MemoryPanel"
 AutoResize = "Auto_Mul8"
@@ -112,18 +130,18 @@ RequestedWidth = 300.0
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "Watch"
-TabWidth = 85.45454
+TabWidth = 85.78947
 TabIsPinned = false
 Type = "WatchPanel"
-Columns = [{Width = 220.0}, {Width = 220.0}, {Width = 220.0}]
+Columns = [{Width = 190.0}, {Width = 190.0}, {Width = 190.0}]
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 Active = true
 TabLabel = "Auto"
-TabWidth = 77.27273
+TabWidth = 77.36842
 TabIsPinned = false
 Type = "AutoWatchPanel"
-Columns = [{Width = 220.0}, {Width = 220.0}, {Width = 220.0}]
+Columns = [{Width = 190.0}, {Width = 190.0}, {Width = 190.0}]
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets]]
 RequestedWidth = 250.0
@@ -133,32 +151,32 @@ Type = "TabbedView"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "Find Results"
-TabWidth = 116.3636
+TabWidth = 116.3158
 TabIsPinned = false
 Type = "FindResultsPanel"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "Threads"
-TabWidth = 93.63636
+TabWidth = 93.1579
 TabIsPinned = false
 Type = "ThreadPanel"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "Call Stack"
-TabWidth = 102.7273
+TabWidth = 102.6316
 TabIsPinned = false
 Type = "CallStackPanel"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "Immediate"
-TabWidth = 109.0909
+TabWidth = 107.8947
 TabIsPinned = false
 Type = "ImmediatePanel"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 Active = true
 TabLabel = "Output"
-TabWidth = 90.90909
+TabWidth = 90.0
 TabIsPinned = false
 Type = "OutputPanel"
 

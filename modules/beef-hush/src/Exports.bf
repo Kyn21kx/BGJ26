@@ -318,7 +318,7 @@ public static class Exports {
 			bool addedAll = true;
 			for (uint32 j = 0; j < typeInfo.propertyCount; j++) {
 				let prop = typeInfo.properties[j];
-				StringView propName = .(&(typeInfo.name[0]));
+				StringView propName = .(&(prop.name[0]));
 				Hush.Reflection.TypeId propType = .();
 				propType.id = prop.type.Underlying;
 				bool added = Hush.ReflectionDB.AddFieldToForeignClass(context.hostData.reflectionDB, classType, propName.Ptr, (uint64)propName.Length, propType, prop.offset);
@@ -337,14 +337,8 @@ public static class Exports {
 			// compInfo.ops.ctor = scope (rawBytes) => {
 				
 			// };
-			
-			uint64 compId = Hush.Scene.RegisterComponentRaw(scene, &compInfo);
-			var compEnt = Hush.Scene.EntityFromIdUnchecked(scene, compId);
-			const StringView inspectableCompName = "InspectableComponent";
-			uint64 inspectableCompId = Hush.Scene.Lookup(scene, inspectableCompName.Ptr, (uint64)inspectableCompName.Length);
-			Debug.Assert(inspectableCompId != 0, "The inspectable component should be registered before a module's entry point");
-			var inspectableComp = (Hush.InspectableComponent*)compEnt.AddComponentRaw(inspectableCompId);
-			inspectableComp.reflectedTypeId = classType;
+			Hush.Modules.RegisterComponentFromReflectedType(context.engine, scene, classType.id);
+
 			if (regErr != Hush.Reflection.ERegisterClassError_None) {
 				Console.WriteLine($"Failed to register type {nameView}, error: {regErr}");
 				return (int32)HushModuleResult.RegistrationFailed;

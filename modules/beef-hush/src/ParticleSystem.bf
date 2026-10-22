@@ -8,8 +8,8 @@ using System.Collections;
 [RegisterSystem]
 class ParticleSystem : GameSystem
 {
-	private const uint8 MAX_PARTICLES_COUNT = 3;
-	private const StringView [MAX_PARTICLES_COUNT] AvailableParticles = .("res://Box.glb","res://decahedron.glb", "res://FireBallPURPLE.glb");
+	private const uint8 MAX_PARTICLES_COUNT = 4;
+	private const StringView [MAX_PARTICLES_COUNT] AvailableParticles = .("res://Box.glb","res://decahedron.glb", "res://FireBallPURPLE.glb", "res://SmokeParticle.glb");
 	private Query m_emitterQuery;
 	private Query m_particleTagQuery;
 	private float m_totalTime;

@@ -45,6 +45,14 @@ public struct RigidBody
     {
         this.acc = acceleration;
     }
+
+	public void SetPosition(Vector3 pos) mut {
+		this.aabb.pos = pos;
+	}
+
+	public Vector3 GetPosition() {
+		return this.aabb.pos;
+	}
 }
 
 [HushComponent, CRepr]

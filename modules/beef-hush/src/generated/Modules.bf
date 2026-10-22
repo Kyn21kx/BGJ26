@@ -30,6 +30,10 @@ public static class Modules {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Modules__HasReflectedType(engine, typeId);
 	}
 
+	public static bool RegisterComponentFromReflectedType(void* engine, void* scene, uint64 typeId) {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Modules__RegisterComponentFromReflectedType(engine, scene, typeId);
+	}
+
 	public static bool AddSystemToScene(void* engine, void* scene, uint64 module, uint64 typeId) {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Modules__AddSystemToScene(engine, scene, module, typeId);
 	}
