@@ -2,19 +2,17 @@ namespace BeefHush;
 
 using System;
 
-
-// A pickup entity needs this Pickup comp, a mesh (MeshReference + LocalTransform + WorldTransform),
-// and an AABB (RigidBody + Collider) so the physics system can detect the player colliding with it.
+public enum EPickupType {
+	None = 0,
+	Spell,
+	PowerUp,
+	Poison // ?
+}
 
 [HushComponent, CRepr]
-public struct PickUp
+public struct Pickup
 {
-		public StringView meshPath;
-		public float scale;
+	public int32 type;
+	public float range;
+}
 
-		public this(StringView meshPath = "res:\\Box.glb", float scale = 1f)
-		{
-			this.meshPath = meshPath;
-			this.scale = scale;
-		}
-	}

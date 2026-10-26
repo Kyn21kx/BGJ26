@@ -1,11 +1,13 @@
 namespace BeefHush;
 
 using System;
+using System.Collections;
 
 
 enum SpellType : int32 {
+	None = -1,
 	Fire = 0,
-	Electric = 1,
+	Electric,
 	Dasher,
 	MAX
 }
@@ -22,6 +24,14 @@ struct Spell // TODO: Rename this to ActiveSpell or something
 	public float range;
 	//NOTE: This value must be normalized, it won't be checked during run time :)
 	public float badCastChance;
+}
+
+[HushComponent, CRepr]
+struct SpellInventory
+{
+	// TODO: Properly handle destructors here
+	public List<Spell> allSpells; // If entry is empty, the spell is not unlocked
+	public int32 activeSpellIdx;
 }
 
 [HushComponent, CRepr]

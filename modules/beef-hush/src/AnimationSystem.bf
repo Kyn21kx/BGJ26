@@ -26,6 +26,7 @@ public class AnimationSystem : GameSystem {
 
 		this.m_tiltingEntities = builder.Build();
 
+		// BUG: This needs to be fixed
 		this.m_oscillatedEntities.Each<Oscillator, LocalTransform, WorldTransform>(scope (entityRef, osc, local, globalXform) => {
 			var globalScale = globalXform.GetScale();
 			local.SetScale(globalScale);

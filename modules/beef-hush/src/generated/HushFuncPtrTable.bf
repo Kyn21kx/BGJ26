@@ -36,6 +36,7 @@ public struct HushFuncPtrTable {
 	public function void(uint8* ,uint64* ,uint64 componentsSize) HushFuncPtr_Hush__impl__QueryBuilderImpl__InitDescriptor;
 	public function void(uint8* ,uint8* ,uint64) HushFuncPtr_Hush__impl__QueryBuilderImpl__Without;
 	public function void(uint8* ,uint8* ,uint64) HushFuncPtr_Hush__impl__QueryBuilderImpl__WithOptional;
+	public function void(uint8* ,uint8*) HushFuncPtr_Hush__impl__QueryBuilderImpl__IncludeTemplates;
 	public function RawQuery(void* ,uint8*) HushFuncPtr_Hush__impl__QueryBuilderImpl__InitQuery;
 	public function uint8*(OpaqueQueryDescriptor* self) HushFuncPtr_Hush__OpaqueQueryDescriptor__data;
 	public function void(void* self,char8* ,uint64 nameSize) HushFuncPtr_Hush__Scene__RemoveSystem;
@@ -44,6 +45,7 @@ public struct HushFuncPtrTable {
 	public function Entity(void* self,char8* ,uint64 keySize) HushFuncPtr_Hush__Scene__CreateEntityWithKey;
 	public function void(void* self,uint64 ,uint64 ,EComponentObserverType ,function void(uint64 ,void*)) HushFuncPtr_Hush__Scene__AddComponentObserverRaw;
 	public function void(void* self,Entity*) HushFuncPtr_Hush__Scene__DestroyEntity;
+	public function void(void* self,Entity*) HushFuncPtr_Hush__Scene__QueueEntityDestroy;
 	public function Entity(void* self,uint64) HushFuncPtr_Hush__Scene__EntityFromIdUnchecked;
 	public function uint64(void* self,ComponentTraits.ComponentInfo*) HushFuncPtr_Hush__Scene__RegisterComponentRaw;
 	public function void(void* self,uint64) HushFuncPtr_Hush__Scene__MarkComponentToggleableRaw;

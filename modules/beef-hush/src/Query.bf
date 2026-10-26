@@ -68,6 +68,10 @@ public struct QueryBuilder {
 		QueryBuilderImpl.WithTerm(this.m_opaqueDesc.data(), &this.m_termCount, term);
 		return term;
 	}
+
+	public void IncludeTemplates() mut {
+		QueryBuilderImpl.IncludeTemplates(this.m_opaqueDesc.data(), &this.m_termCount);
+	}
 }
 
 public struct Query {

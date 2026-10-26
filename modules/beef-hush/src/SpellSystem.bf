@@ -17,6 +17,7 @@ class SpellSystem : GameSystem
 
 	
 	private Query m_fireSpellsQuery;
+	private Query m_spellSelectorQuery;
 	private Query m_manaQuery;
 	private float m_totalTime;
 	private void* m_scene;
@@ -54,6 +55,25 @@ class SpellSystem : GameSystem
 		Query mainCamQ = builder.Build();
 		mainCamQ.EachEntity(scope (entityRef) => {
 		   this.m_mainCamEntity = entityRef;
+		});
+
+		builder = .();
+		builder.With<SpellInventory>();
+		builder.With<Controller>();
+		builder.With<Spell>();
+		this.m_spellSelectorQuery = builder.Build();
+
+		// TEMP: Small hack for now
+		builder = .();
+		builder.With<Spell>();
+		builder.Without<Controller>();
+		builder.Without<SpellInventory>();
+		Query tempQuery = builder.Build();
+		this.m_spellSelectorQuery.Each<SpellInventory, Controller, Spell>(scope (selectorEnt, spellInventory, controller, selectorActiveSpell) => {
+			spellInventory.allSpells = new List<Spell>((int32)SpellType.MAX);
+			tempQuery.Each<Spell>(scope [&](entityRef, spell) => {
+				spellInventory.allSpells.Add(*spell);
+			});
 		});
 		PhysicsSystem.OnCollisionEvent.Add(new (a, b) => {
 			// TODO: Make this better by making sure the Physics system does not emit multiple events for the same entities
@@ -207,7 +227,7 @@ class SpellSystem : GameSystem
 			emission.x = 1f;
 			emission.y = 1f;
 			emission.z = 1f;
-			emission.w = 10f;
+			emission.w = 50f;
 			mat.SetPropertyRaw(emissionProp.Ptr, (uint64)emissionProp.Length, (uint8*)&emission, sizeof(Vector4));
 			break;
 		default:
@@ -224,7 +244,7 @@ class SpellSystem : GameSystem
 		emitter.emitRadius = 0.3f;
 		emitter.minScale = 0.1f;
 		emitter.particleLifeTime = 1f;
-		emitter.velocity = direction * -3.0f; // We could make them go slightly up to disappear
+		emitter.velocity = direction * -1f; // We could make them go slightly up to disappear
 		emitter.velocity.y = 0.0f;
 		emitter.emitRate = 0.01f;
 
@@ -237,6 +257,7 @@ class SpellSystem : GameSystem
 			emitter.minScale = 1f;
 			emitter.maxScale = 1.5f;
 			emitter.particleAssetId = 3;
+			emitter.particleLifeTime = 0.3f;
 			break;
 		default:
 			Debug.Assert(false, "Spell type is outside the bounds of implemented spells!");
@@ -274,10 +295,33 @@ class SpellSystem : GameSystem
 		MakeSpell(entityRef.Id, (SpellType)spell.type, (int32)EEntityTag.Spell, spellRig.aabb.pos, direction, spell.projectileSpeed, spell.range);
 	}
 
+	// TODO: Refactor this so that we use a better SpellCaster tag and we don't have to copy info from the other comp
+	private void SpellSelectionSystem(BeefHush.Entity entityRef, SpellInventory* spellInventory, Controller* controller, Spell* activeSpell) {
+		let nextSpellKey = (EKeyCode)controller.nextSpell;
+		let prevSpellKey = (EKeyCode)controller.prevSpell;
+		int32 chosenSpell;
+		if (InputManager.IsKeyDownThisFrame(nextSpellKey)) {
+			// Try to peek to see if the next spell is available
+			chosenSpell = (spellInventory.activeSpellIdx + 1) % (int32)SpellType.MAX;
+		}
+		else if (InputManager.IsKeyDownThisFrame(prevSpellKey)) {
+			chosenSpell = spellInventory.activeSpellIdx - 1;
+			chosenSpell = chosenSpell >= 0 ? chosenSpell : (int32)SpellType.MAX - 1;
+		}
+		else {
+			return;
+		}
+
+		// Copy all info from chosen spell to the active spell
+		(*activeSpell) = spellInventory.allSpells[chosenSpell];
+		spellInventory.activeSpellIdx = chosenSpell;
+	}
+
 	public void OnUpdate(float delta)
 	{
 		this.m_totalTime += delta;
 		this.ManaSubsystem(delta);
+		this.m_spellSelectorQuery.Each<SpellInventory, Controller, Spell>(scope => this.SpellSelectionSystem);
 		this.m_fireSpellsQuery.Each<Spell, Controller, ManaStat, RigidBody>(scope (entityRef, spell, controller, manaStat, spellRig) => {
 			float diff = this.m_totalTime - spell.lastFireTime;
 			// TODO: Make the component decide if this is a mouse button press or something else

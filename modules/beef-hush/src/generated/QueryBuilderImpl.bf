@@ -6,6 +6,10 @@ public static class QueryBuilderImpl {
 			return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__impl__QueryBuilderImpl__InitQuery(scene, queryDesc);
 		}
 
+		public static void IncludeTemplates(uint8* queryDesc, uint8* termCountRef) {
+			BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__impl__QueryBuilderImpl__IncludeTemplates(queryDesc, termCountRef);
+		}
+
 		public static void WithOptional(uint8* queryDesc, uint8* termCountRef, uint64 term) {
 			BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__impl__QueryBuilderImpl__WithOptional(queryDesc, termCountRef, term);
 		}

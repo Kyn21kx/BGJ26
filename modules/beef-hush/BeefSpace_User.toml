@@ -1,7 +1,7 @@
 FileVersion = 1
 LastConfig = "Debug"
 LastPlatform = "Win64"
-RecentFilesList = ["src\\LifetimeSystem.bf", "src\\components\\Lifetime.bf", "src\\SpellSystem.bf", "src\\Exports.bf", "src\\CompSerializationRegistry.bf", "src\\System.bf", "src\\generated\\ReflectionDB.bf", "c:\\Program Files\\BeefLang\\BeefLibs\\corlib\\src\\Object.bf", "src\\CameraSystem.bf", "src\\utils\\MathUtils.bf", "src\\utils\\Constants.bf", "src\\components\\RigidBody.bf", "src\\generated\\InputManager.bf", "src\\utils\\SpatialGrid.bf", "src\\PhysicsSystem.bf", "src\\MovementSystem.bf", "src\\components\\AABB.bf", "src\\components\\MovementStat.bf", "src\\generated\\Entity.bf", "src\\Entity.bf"]
+RecentFilesList = ["src\\DropAndPickupSystem.bf", "src\\utils\\SpatialGrid.bf", "src\\SpellSystem.bf", "src\\LifetimeSystem.bf", "src\\components\\Spell.bf", "src\\components\\Lifetime.bf", "src\\Exports.bf", "src\\CompSerializationRegistry.bf", "src\\System.bf", "src\\generated\\ReflectionDB.bf", "c:\\Program Files\\BeefLang\\BeefLibs\\corlib\\src\\Object.bf", "src\\CameraSystem.bf", "src\\utils\\MathUtils.bf", "src\\utils\\Constants.bf", "src\\components\\RigidBody.bf", "src\\generated\\InputManager.bf", "src\\PhysicsSystem.bf", "src\\MovementSystem.bf", "src\\components\\AABB.bf", "src\\components\\MovementStat.bf"]
 
 [MainWindow]
 X = 225
@@ -43,14 +43,41 @@ DefaultDocumentsTabbedView = true
 Type = "TabbedView"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "SpatialGrid.bf"
+TabWidth = 104.7368
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\utils\\SpatialGrid.bf"
+CursorPos = 209
+ProjectName = "beef-hush"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 Active = true
+TabLabel = "DropAndPickupSystem.bf"
+TabWidth = 172.1053
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\DropAndPickupSystem.bf"
+CursorPos = 1310
+VertPos = 783.0
+ProjectName = "beef-hush"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "Spell.bf"
+TabWidth = 71.05264
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\components\\Spell.bf"
+CursorPos = 672
+ProjectName = "beef-hush"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "LifetimeSystem.bf"
-TabWidth = 137.8947
+TabWidth = 127.8947
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\LifetimeSystem.bf"
 CursorPos = 1138
-VertPos = 957.0
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
@@ -59,8 +86,7 @@ TabWidth = 110.0
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\SpellSystem.bf"
-CursorPos = 10286
-VertPos = 7221.0
+CursorPos = 2452
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
