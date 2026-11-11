@@ -24,11 +24,6 @@ public class MovementSytem : GameSystem
 		this.entityQuery = builder.Build();
 
 		this.entityQuery.EachEntity(scope (entityRef) => {
-			// TODO: Maybe we need to restore this, but maybe we don't lol
-			// if (entityRef.GetComponent<IsStunned>() == null) {
-			// 	entityRef.AddComponent<IsStunned>();
-			// }
-
 			WorldTransform* globalXform = entityRef.GetComponent<WorldTransform>();
 			LocalTransform* xform = entityRef.GetComponent<LocalTransform>();
 			RigidBody* rig = entityRef.GetComponent<RigidBody>();

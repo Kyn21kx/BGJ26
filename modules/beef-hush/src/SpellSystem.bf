@@ -149,22 +149,6 @@ class SpellSystem : GameSystem
 		});
 	}
 
-	private Vector3 GetShootDirection(Vector3 currPos) {
-		// Get the mouse position in world space
-		Vector2 mouseScreenPos = InputManager.GetMousePosition();
-		// Find cam
-		Camera* cam = this.m_mainCamEntity.GetComponent<Camera>();
-		LocalTransform* xform = this.m_mainCamEntity.GetComponent<LocalTransform>();
-		float[16] mat = .();
-		xform.GetTransformationMatrixUnsafe(&(mat[0]), 16);
-		Vector3 direction = .();
-		Vector3 origin = cam.ScreenToWorldPosUnsafe(&(mat[0]), mouseScreenPos, &direction);
-		Vector3 worldPos = cam.ProjectPlanePosition(origin, direction, 0.0f);
-
-		// Then we do dest - source
-		return (worldPos - currPos).normalized();
-	}
-
 	public static uint64 MakeSpell(uint64 caster, SpellType type, int32 collIdentifier, Vector3 position, Vector3 direction, float speed, float range) {
 		// Slow path at instancing
 		const StringView renderSystemName = "RenderingSystem";
@@ -303,12 +287,14 @@ class SpellSystem : GameSystem
 	private void SpellSelectionSystem(BeefHush.Entity entityRef, SpellInventory* spellInventory, Controller* controller, Spell* activeSpell) {
 		let nextSpellKey = (EKeyCode)controller.nextSpell;
 		let prevSpellKey = (EKeyCode)controller.prevSpell;
+		EGamepadButton prevSpellBtn = .EGamepadButton_XboxLB;
+		EGamepadButton nextSpellBtn = .EGamepadButton_XboxRB;
 		int32 chosenSpell;
-		if (InputManager.IsKeyDownThisFrame(nextSpellKey)) {
+		if (InputManager.IsKeyDownThisFrame(nextSpellKey) || InputManager.IsGamepadButtonDownThisFrame(controller.hardwareIndex, nextSpellBtn)) {
 			// Try to peek to see if the next spell is available
 			chosenSpell = (spellInventory.activeSpellIdx + 1) % (int32)spellInventory.allSpells.Count;
 		}
-		else if (InputManager.IsKeyDownThisFrame(prevSpellKey)) {
+		else if (InputManager.IsKeyDownThisFrame(prevSpellKey) || InputManager.IsGamepadButtonDownThisFrame(controller.hardwareIndex, prevSpellBtn)) {
 			chosenSpell = spellInventory.activeSpellIdx - 1;
 			chosenSpell = chosenSpell >= 0 ? chosenSpell : (int32)spellInventory.allSpells.Count - 1;
 		}
@@ -330,7 +316,8 @@ class SpellSystem : GameSystem
 			float diff = this.m_totalTime - spell.lastFireTime;
 			// TODO: Make the component decide if this is a mouse button press or something else
 			bool mouseWasPressed = InputManager.GetMouseButtonPressed((EMouseButton)controller.fire);
-			bool gamepadWasPressed = InputManager.IsGamepadButtonDown(controller.hardwareIndex, .EGamepadButton_XboxX);
+			const float driftError = 0.05f;
+			bool gamepadWasPressed = InputManager.GetGamepadAxis(controller.hardwareIndex, .EGamepadAxis_RightTrigger) > driftError;
 
 			// Default behavior: the player CAN still attack (cast) while stunned.
 			bool canCast = (mouseWasPressed || gamepadWasPressed) && diff >= spell.fireRate && manaStat.blockCastTime <= 0f && manaStat.currentMana >= spell.manaCost;
@@ -347,7 +334,8 @@ class SpellSystem : GameSystem
 				manaStat.currentMana -= spell.manaCost;
 				spell.lastFireTime = this.m_totalTime;
 
-				Vector3 direction = this.GetShootDirection(spellRig.aabb.pos);
+				// Vector3 direction = this.GetShootDirection(spellRig.aabb.pos);
+				Vector3 direction = controller.cachedLookDir;
 				SpawnBullet(&entityRef, spellRig, spell, manaStat, direction);
 				return;
 			}

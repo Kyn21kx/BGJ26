@@ -3,7 +3,7 @@ namespace Hush;
 using System;
 
 extension Vector2 {
-	const Vector2 ZERO = .(0, 0);
+	public const Vector2 ZERO = .(0, 0);
 
 	public this(float x, float y){
 		 this.x = x;

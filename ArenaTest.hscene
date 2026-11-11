@@ -39855,7 +39855,7 @@
                     "id": 578,
                     "key": "ManaStat",
                     "currentMana": 100.0,
-                    "regenerationRate": 0.5
+                    "regenerationRate": 2
                 },
                 {
                     "id": 581,

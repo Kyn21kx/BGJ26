@@ -49,6 +49,7 @@ class AimGuideSystem : GameSystem
 		builder.With<PlayerTag>();
 		builder.With<LocalTransform>();
 		builder.With<RigidBody>();
+		builder.With<Controller>();
 		this.m_rotatingPlayers = builder.Build();
 	}
 
@@ -85,8 +86,31 @@ class AimGuideSystem : GameSystem
 			xform.SetPosition(GetPosInWorldSpace(guide.depth));
 		});
 
-		this.m_rotatingPlayers.Each<PlayerTag, LocalTransform, RigidBody>(scope (entityRef, tag, localXform, rig) => {
-			Vector3 target = GetPosInWorldSpace(0f);
+		this.m_rotatingPlayers.Each<PlayerTag, LocalTransform, RigidBody, Controller>(scope (entityRef, tag, localXform, rig, controller) => {
+			// Get the axis of the controller
+			float xRs = InputManager.GetGamepadAxis(controller.hardwareIndex, .EGamepadAxis_RightX);
+			float yRs = InputManager.GetGamepadAxis(controller.hardwareIndex, .EGamepadAxis_RightY);
+
+			Vector3 rsInput = .();
+			// Account for drift
+			const float error = 0.05f;
+			if (Math.Abs(xRs) >= error) {
+				rsInput.x = xRs;
+			}
+			if (Math.Abs(yRs) >= error) {
+				rsInput.z = yRs;
+			}
+
+			Vector3 target = rig.aabb.pos;
+			if (rsInput == Vector3.ZERO) {
+				target = GetPosInWorldSpace(0f);
+				controller.cachedLookDir = (target - rig.aabb.pos).normalized();
+			}
+			else {
+				// Add the rs input to it
+				controller.cachedLookDir = rsInput.normalized();
+				target += rsInput.normalized();
+			}
 			target.y = 0f;
 			Vector3 rotationTarget = Vector3.LookRotationEulerYawOnly(target, rig.aabb.pos, Constants.Vector3_UP);
 			localXform.SetEulerAngles(&rotationTarget);
