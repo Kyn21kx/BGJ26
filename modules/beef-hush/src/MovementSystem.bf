@@ -72,6 +72,20 @@ public class MovementSytem : GameSystem
 				if(Hush.InputManager.IsKeyDown((EKeyCode)controller.right)){
 					movement.x = 1;
 				}
+
+				let controllerIdx = controller.hardwareIndex;
+
+				float xInput = InputManager.GetGamepadAxis(controllerIdx, .EGamepadAxis_LeftX);
+				float yInput = InputManager.GetGamepadAxis(controllerIdx, .EGamepadAxis_LeftY);
+
+				// Account for drift
+				const float error = 0.05f;
+				if (Math.Abs(xInput) >= error) {
+					movement.x += xInput;
+				}
+				if (Math.Abs(yInput) >= error) {
+					movement.z += yInput;
+				}
 				 
 				if(movement != Constants.Vector3_ZERO){
 					movement = movement.normalized();

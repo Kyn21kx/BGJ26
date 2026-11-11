@@ -22,8 +22,8 @@ public static class Scene {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__EntityFromIdUnchecked(self, id);
 	}
 
-	public static void QueueEntityDestroy(void* self, Entity* entity) {
-		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__QueueEntityDestroy(self, entity);
+	public static void QueueEntityDestroy(void* self, Entity* entity, function void(uint64 ,void*) destructor) {
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Scene__QueueEntityDestroy(self, entity, destructor);
 	}
 
 	public static void DestroyEntity(void* self, Entity* entity) {

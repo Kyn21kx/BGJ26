@@ -13,7 +13,7 @@ class SpellSystem : GameSystem
 	private const StringView [MAX_SPELL_MESH_COUNT] availableSpells = .("res://FireBallPURPLE.glb", "res://decahedron.glb", "res://PlayerModelGhosted.glb");
 	// HACK: Super bad way of saying we can't get our models in the same scale
 	private const float [MAX_SPELL_MESH_COUNT] spellScaleFactor = .(0.5f, 0.5f, 0.1f);
-	private const float SELF_STUN_TIME = 0.5f;
+	private const float SELF_STUN_TIME = 1.0f;
 
 	
 	private Query m_fireSpellsQuery;
@@ -250,8 +250,12 @@ class SpellSystem : GameSystem
 
 		switch(type) {
 		case .Fire:
-		case .Electric:
 			emitter.particleAssetId = 0;
+			break;
+		case .Electric:
+			emitter.minScale = 1f;
+			emitter.maxScale = 1.5f;
+			emitter.particleAssetId = 1;
 			break;
 		case .Dasher:
 			emitter.minScale = 1f;
@@ -288,10 +292,10 @@ class SpellSystem : GameSystem
 		}
 	}
 
-	private void SpawnBullet(BeefHush.Entity* entityRef, RigidBody* spellRig, Spell* spell, Vector3 direction) {
+	private void SpawnBullet(BeefHush.Entity* entityRef, RigidBody* spellRig, Spell* spell, ManaStat* castingStat, Vector3 direction) {
 		const StringView path = "res://decahedron.glb";
 
-		CastingSubSystem(entityRef, spell, &direction);
+		CastingSubSystem(entityRef, spell, castingStat, &direction);
 		MakeSpell(entityRef.Id, (SpellType)spell.type, (int32)EEntityTag.Spell, spellRig.aabb.pos, direction, spell.projectileSpeed, spell.range);
 	}
 
@@ -302,11 +306,11 @@ class SpellSystem : GameSystem
 		int32 chosenSpell;
 		if (InputManager.IsKeyDownThisFrame(nextSpellKey)) {
 			// Try to peek to see if the next spell is available
-			chosenSpell = (spellInventory.activeSpellIdx + 1) % (int32)SpellType.MAX;
+			chosenSpell = (spellInventory.activeSpellIdx + 1) % (int32)spellInventory.allSpells.Count;
 		}
 		else if (InputManager.IsKeyDownThisFrame(prevSpellKey)) {
 			chosenSpell = spellInventory.activeSpellIdx - 1;
-			chosenSpell = chosenSpell >= 0 ? chosenSpell : (int32)SpellType.MAX - 1;
+			chosenSpell = chosenSpell >= 0 ? chosenSpell : (int32)spellInventory.allSpells.Count - 1;
 		}
 		else {
 			return;
@@ -326,9 +330,10 @@ class SpellSystem : GameSystem
 			float diff = this.m_totalTime - spell.lastFireTime;
 			// TODO: Make the component decide if this is a mouse button press or something else
 			bool mouseWasPressed = InputManager.GetMouseButtonPressed((EMouseButton)controller.fire);
+			bool gamepadWasPressed = InputManager.IsGamepadButtonDown(controller.hardwareIndex, .EGamepadButton_XboxX);
 
 			// Default behavior: the player CAN still attack (cast) while stunned.
-			bool canCast = mouseWasPressed && diff >= spell.fireRate && manaStat.currentMana >= spell.manaCost;
+			bool canCast = (mouseWasPressed || gamepadWasPressed) && diff >= spell.fireRate && manaStat.blockCastTime <= 0f && manaStat.currentMana >= spell.manaCost;
 
 			/*
 			   Alternative behavior (uncomment to enable): a stunned player CANNOT
@@ -343,13 +348,17 @@ class SpellSystem : GameSystem
 				spell.lastFireTime = this.m_totalTime;
 
 				Vector3 direction = this.GetShootDirection(spellRig.aabb.pos);
-				SpawnBullet(&entityRef, spellRig, spell, direction);
+				SpawnBullet(&entityRef, spellRig, spell, manaStat, direction);
+				return;
+			}
+			if (manaStat.blockCastTime > 0f) {
+				manaStat.blockCastTime -= delta;
 			}
 		});
 
 	}
 
-	public void CastingSubSystem(BeefHush.Entity* entityRef, Spell* spell, Vector3* dir){
+	public void CastingSubSystem(BeefHush.Entity* entityRef, Spell* spell, ManaStat* castingStat, Vector3* dir){
 		float roll = (float)this.m_random.NextDouble();
 		if (roll >= spell.badCastChance) {
 			return;
@@ -367,8 +376,11 @@ class SpellSystem : GameSystem
 			break;
 		case .Electric:
 			var movStat = entityRef.GetComponent<MovementStat>();
+			var rig = entityRef.GetComponent<RigidBody>();
 			Debug.Assert(movStat != null, "Firing electric spell from an entity without a movement state");
 			movStat.stunTimeRemaining += SELF_STUN_TIME;
+			castingStat.blockCastTime += SELF_STUN_TIME;
+			rig.SetVelocity(Vector3.ZERO);
 			break;
 		default:
 			Debug.Assert(false, "Illegal state");

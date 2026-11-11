@@ -8,4 +8,5 @@ struct ManaStat
 {
 	public float currentMana;
 	public float regenerationRate;
+	public float blockCastTime;
 }

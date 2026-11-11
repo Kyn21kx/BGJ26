@@ -10,6 +10,14 @@ struct Oscillator {
 	public float heightMax;
 	public float heightMin;
 	public int direction;
+
+	public static void PickupOscillator(Oscillator* osc) {
+		osc.direction = 1;
+		osc.speed = 1.0f;
+		osc.heightMax = 1.0f;
+		osc.heightMin = 0.2f;
+	}
+
 }
 
 [HushComponent, CRepr]

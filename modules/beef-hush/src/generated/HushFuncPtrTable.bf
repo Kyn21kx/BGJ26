@@ -10,6 +10,7 @@ public struct HushFuncPtrTable {
 	public function bool(void* self,Reflection.TypeId ,char8* ,uint64 fieldNameSize,Reflection.TypeId ,uint64) HushFuncPtr_Hush__Reflection__ReflectionDB__AddFieldToForeignClass;
 	public function uint64(Entity* self,ComponentTraits.ComponentInfo*) HushFuncPtr_Hush__Entity__RegisterComponentRaw;
 	public function void*(Entity* self,uint64) HushFuncPtr_Hush__Entity__AddComponentRaw;
+	public function void(Entity* self,uint64) HushFuncPtr_Hush__Entity__AddId;
 	public function void*(Entity* self,uint64) HushFuncPtr_Hush__Entity__GetComponentRaw;
 	public function void*(Entity* self,uint64) HushFuncPtr_Hush__Entity__GetComponentConstRaw;
 	public function bool(Entity* self,uint64) HushFuncPtr_Hush__Entity__HasComponentRaw;
@@ -20,6 +21,8 @@ public struct HushFuncPtrTable {
 	public function int32(Entity* self) HushFuncPtr_Hush__Entity__GetChildCount;
 	public function void(Entity* self,Entity* ,Entity*) HushFuncPtr_Hush__Entity__AddRelationship;
 	public function uint64(Entity* self) HushFuncPtr_Hush__Entity__GetId;
+	public function void(Entity* self,char8* ,uint64 nameSize) HushFuncPtr_Hush__Entity__SetName;
+	public function void(Entity* self,char8* ,uint64 keySize) HushFuncPtr_Hush__Entity__SetKey;
 	public function void(Entity* self,char8* ,uint64 bufferSize) HushFuncPtr_Hush__Entity__GetKey;
 	public function void(Entity* self,char8* ,uint64 bufferSize) HushFuncPtr_Hush__Entity__QueryName;
 	public function bool(Entity* self) HushFuncPtr_Hush__Entity__IsAlive;
@@ -37,6 +40,7 @@ public struct HushFuncPtrTable {
 	public function void(uint8* ,uint8* ,uint64) HushFuncPtr_Hush__impl__QueryBuilderImpl__Without;
 	public function void(uint8* ,uint8* ,uint64) HushFuncPtr_Hush__impl__QueryBuilderImpl__WithOptional;
 	public function void(uint8* ,uint8*) HushFuncPtr_Hush__impl__QueryBuilderImpl__IncludeTemplates;
+	public function void(uint8* ,uint8*) HushFuncPtr_Hush__impl__QueryBuilderImpl__TemplatesOnly;
 	public function RawQuery(void* ,uint8*) HushFuncPtr_Hush__impl__QueryBuilderImpl__InitQuery;
 	public function uint8*(OpaqueQueryDescriptor* self) HushFuncPtr_Hush__OpaqueQueryDescriptor__data;
 	public function void(void* self,char8* ,uint64 nameSize) HushFuncPtr_Hush__Scene__RemoveSystem;
@@ -45,7 +49,7 @@ public struct HushFuncPtrTable {
 	public function Entity(void* self,char8* ,uint64 keySize) HushFuncPtr_Hush__Scene__CreateEntityWithKey;
 	public function void(void* self,uint64 ,uint64 ,EComponentObserverType ,function void(uint64 ,void*)) HushFuncPtr_Hush__Scene__AddComponentObserverRaw;
 	public function void(void* self,Entity*) HushFuncPtr_Hush__Scene__DestroyEntity;
-	public function void(void* self,Entity*) HushFuncPtr_Hush__Scene__QueueEntityDestroy;
+	public function void(void* self,Entity* ,function void(uint64 ,void*)) HushFuncPtr_Hush__Scene__QueueEntityDestroy;
 	public function Entity(void* self,uint64) HushFuncPtr_Hush__Scene__EntityFromIdUnchecked;
 	public function uint64(void* self,ComponentTraits.ComponentInfo*) HushFuncPtr_Hush__Scene__RegisterComponentRaw;
 	public function void(void* self,uint64) HushFuncPtr_Hush__Scene__MarkComponentToggleableRaw;
@@ -89,6 +93,11 @@ public struct HushFuncPtrTable {
 	public function Vector2() HushFuncPtr_Hush__InputManager__GetMousePosition;
 	public function Vector2() HushFuncPtr_Hush__InputManager__GetMouseAcceleration;
 	public function void(ECursorLockMode) HushFuncPtr_Hush__InputManager__SetCursorLock;
+	public function float(uint64 ,EGamepadAxis) HushFuncPtr_Hush__InputManager__GetGamepadAxis;
+	public function bool(uint64 ,EGamepadButton) HushFuncPtr_Hush__InputManager__IsGamepadButtonDown;
+	public function bool(uint64 ,EGamepadButton) HushFuncPtr_Hush__InputManager__IsGamepadButtonHeld;
+	public function bool(uint64 ,EGamepadButton) HushFuncPtr_Hush__InputManager__IsGamepadButtonDownThisFrame;
+	public function bool(uint64 ,EGamepadButton) HushFuncPtr_Hush__InputManager__IsGamepadButtonUp;
 	public function Vector3(Camera* self,Matrix4 ,Vector2 ,Vector3*) HushFuncPtr_Hush__Camera__ScreenToWorldPos;
 	public function Vector3(Camera* self,float* ,Vector2 ,Vector3*) HushFuncPtr_Hush__Camera__ScreenToWorldPosUnsafe;
 	public function Vector3(Camera* self,Vector3 ,Vector3 ,float) HushFuncPtr_Hush__Camera__ProjectPlanePosition;

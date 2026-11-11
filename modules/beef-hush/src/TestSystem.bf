@@ -21,7 +21,6 @@ public class SmallSystem : GameSystem {
 	/// OnRender() is called when the system should render.
 	/// @param delta Time since last frame
 	public void OnUpdate(float delta) {
-		Console.WriteLine(scope $"Hello from Update with delta: {delta}!");
 	}
 
 	/// OnFixedUpdate() is called when the system should update its state.

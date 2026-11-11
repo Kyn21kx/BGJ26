@@ -18,6 +18,14 @@ public struct Entity {
 		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__GetKey(&this, bufferData, bufferSize);
 	}
 
+	public void SetKey(char8* keyData, uint64 keySize) {
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__SetKey(&this, keyData, keySize);
+	}
+
+	public void SetName(char8* nameData, uint64 nameSize) {
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__SetName(&this, nameData, nameSize);
+	}
+
 	public uint64 GetId() {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__GetId(&this);
 	}
@@ -56,6 +64,10 @@ public struct Entity {
 
 	public void* GetComponentRaw(uint64 componentId) {
 		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__GetComponentRaw(&this, componentId);
+	}
+
+	public void AddId(uint64 componentId) {
+		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__Entity__AddId(&this, componentId);
 	}
 
 	public void* AddComponentRaw(uint64 componentId) {

@@ -2,6 +2,26 @@ namespace Hush;
 using System;
 public static class InputManager {
 
+	public static bool IsGamepadButtonUp(uint64 controllerIndex, EGamepadButton button) {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__InputManager__IsGamepadButtonUp(controllerIndex, button);
+	}
+
+	public static bool IsGamepadButtonDownThisFrame(uint64 controllerIndex, EGamepadButton button) {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__InputManager__IsGamepadButtonDownThisFrame(controllerIndex, button);
+	}
+
+	public static bool IsGamepadButtonHeld(uint64 controllerIndex, EGamepadButton button) {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__InputManager__IsGamepadButtonHeld(controllerIndex, button);
+	}
+
+	public static bool IsGamepadButtonDown(uint64 controllerIndex, EGamepadButton button) {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__InputManager__IsGamepadButtonDown(controllerIndex, button);
+	}
+
+	public static float GetGamepadAxis(uint64 controllerIndex, EGamepadAxis axis) {
+		return BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__InputManager__GetGamepadAxis(controllerIndex, axis);
+	}
+
 	public static void SetCursorLock(ECursorLockMode lockMode) {
 		BeefHush.EngineDependencies.Instance.FunctionPointerTable.HushFuncPtr_Hush__InputManager__SetCursorLock(lockMode);
 	}

@@ -1,13 +1,13 @@
 FileVersion = 1
 LastConfig = "Debug"
 LastPlatform = "Win64"
-RecentFilesList = ["src\\DropAndPickupSystem.bf", "src\\utils\\SpatialGrid.bf", "src\\SpellSystem.bf", "src\\LifetimeSystem.bf", "src\\components\\Spell.bf", "src\\components\\Lifetime.bf", "src\\Exports.bf", "src\\CompSerializationRegistry.bf", "src\\System.bf", "src\\generated\\ReflectionDB.bf", "c:\\Program Files\\BeefLang\\BeefLibs\\corlib\\src\\Object.bf", "src\\CameraSystem.bf", "src\\utils\\MathUtils.bf", "src\\utils\\Constants.bf", "src\\components\\RigidBody.bf", "src\\generated\\InputManager.bf", "src\\PhysicsSystem.bf", "src\\MovementSystem.bf", "src\\components\\AABB.bf", "src\\components\\MovementStat.bf"]
+RecentFilesList = ["src\\generated\\HushInternal.bf", "src\\utils\\SpatialGrid.bf", "src\\DropAndPickupSystem.bf", "src\\components\\Pickup.bf", "src\\SpellSystem.bf", "src\\LifetimeSystem.bf", "src\\components\\Spell.bf", "src\\components\\Lifetime.bf", "src\\Exports.bf", "src\\CompSerializationRegistry.bf", "src\\System.bf", "src\\generated\\ReflectionDB.bf", "c:\\Program Files\\BeefLang\\BeefLibs\\corlib\\src\\Object.bf", "src\\CameraSystem.bf", "src\\utils\\MathUtils.bf", "src\\utils\\Constants.bf", "src\\components\\RigidBody.bf", "src\\generated\\InputManager.bf", "src\\PhysicsSystem.bf", "src\\MovementSystem.bf"]
 
 [MainWindow]
-X = 225
+X = 302
 Y = 0
-Width = 625
-Height = 588
+Width = 500
+Height = 470
 ShowKind = "ShowMaximized"
 
 [MainDockingFrame]
@@ -43,6 +43,16 @@ DefaultDocumentsTabbedView = true
 Type = "TabbedView"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
+Active = true
+TabLabel = "HushInternal.bf"
+TabWidth = 126.3158
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\generated\\HushInternal.bf"
+CursorPos = 495
+ProjectName = "beef-hush"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
 TabLabel = "SpatialGrid.bf"
 TabWidth = 104.7368
 TabIsPinned = false
@@ -52,14 +62,12 @@ CursorPos = 209
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]
-Active = true
 TabLabel = "DropAndPickupSystem.bf"
 TabWidth = 172.1053
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\DropAndPickupSystem.bf"
-CursorPos = 1310
-VertPos = 783.0
+CursorPos = 410
 ProjectName = "beef-hush"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.Tabs]]

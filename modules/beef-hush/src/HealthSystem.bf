@@ -60,6 +60,9 @@ public class HealthSystem : GameSystem {
 			if (health.value <= 0f) {
 				// Die
 				this.m_entitiesToDestroy.Add(entityRef.Id);
+				if (health.onKilled != null) {
+					health.onKilled(&entityRef);
+				}
 				return;
 			}
 

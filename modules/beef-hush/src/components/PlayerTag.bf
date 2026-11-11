@@ -4,5 +4,5 @@ using System;
 [HushComponent, CRepr]
 struct PlayerTag
 {
-	int32 playerIndex;
+	public int32 playerIndex;
 }

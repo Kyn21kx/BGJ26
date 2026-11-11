@@ -82,6 +82,10 @@ public struct Entity { //: BindingCompletenessCheck<Hush.Entity, Entity> {
 		return (T*)compMut;
 	}
 
+	public void SetName(StringView name) {
+		this.m_innerEntity.SetName(name.Ptr, (uint64)name.Length);
+	}
+
 	public T* GetComponent<T>(uint64 knownId) {
 		void* compMut = this.m_innerEntity.GetComponentRaw(knownId);
 		return (T*)compMut;

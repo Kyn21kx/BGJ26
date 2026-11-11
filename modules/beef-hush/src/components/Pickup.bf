@@ -2,11 +2,11 @@ namespace BeefHush;
 
 using System;
 
-public enum EPickupType {
-	None = 0,
-	Spell,
+public enum EPickupType : int32 {
+	Spell = 0,
 	PowerUp,
-	Poison // ?
+	Poison,
+	MAX
 }
 
 [HushComponent, CRepr]
